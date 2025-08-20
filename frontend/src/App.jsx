@@ -1,14 +1,8 @@
-import { useState } from 'react'
-
+import React from 'react';
+import AppRouter from './config/Router';
 
 function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <>
-      <div className='text-xl text-amber-400'>Team Recursion</div>
-    </>
-  )
+  return <AppRouter />;
 }
 
-export default App
+export default App;
