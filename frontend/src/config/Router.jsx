@@ -1,8 +1,10 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
+import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import LandingPage from '../pages/common/LandingPage';
 import Dashboard from '../pages/user/Dashboard';
+import AdminDashboard from '../pages/admin/AdminDashboard';
+import OrganiserDashboard from '../pages/organiser/OrganiserDashboard';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
 
@@ -20,29 +22,64 @@ const ProtectedRoute = ({ children }) => {
   );
 };
 
+// Admin Route Component (only for admin users)
+const AdminRoute = ({ children }) => {
+  return (
+    <>
+      <SignedIn>
+        {children}
+      </SignedIn>
+      <SignedOut>
+        <Navigate to="/" replace />
+      </SignedOut>
+    </>
+  );
+};
+
+// Organiser Route Component (only for organiser users)
+const OrganiserRoute = ({ children }) => {
+  return (
+    <>
+      <SignedIn>
+        {children}
+      </SignedIn>
+      <SignedOut>
+        <Navigate to="/" replace />
+      </SignedOut>
+    </>
+  );
+};
+
 // Public Route Component (only for signed out users)
 const PublicRoute = ({ children }) => {
+  const { user } = useUser();
+  
+  // Check if user is admin or organiser based on email
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
+  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'tanishq7msd@gmail.com';
+  
   return (
     <>
       <SignedOut>
         {children}
       </SignedOut>
       <SignedIn>
-        <Navigate to="/user/dashboard" replace />
+        {isAdmin ? (
+          <Navigate to="/admin/dashboard" replace />
+        ) : isOrganiser ? (
+          <Navigate to="/organiser/dashboard" replace />
+        ) : (
+          <Navigate to="/user/dashboard" replace />
+        )}
       </SignedIn>
     </>
   );
 };
 
 const AppRouter = () => {
-  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-  if (!publishableKey) {
-    throw new Error('Missing Clerk Publishable Key');
-  }
-
+  
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    
       <Router>
         <Routes>
           {/* Landing Page - Public Route */}
@@ -84,16 +121,34 @@ const AppRouter = () => {
             } 
           />
 
+          {/* Admin Dashboard - Protected Route */}
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } 
+          />
+
+          {/* Organiser Dashboard - Protected Route */}
+          <Route 
+            path="/organiser/dashboard" 
+            element={
+              <OrganiserRoute>
+                <OrganiserDashboard />
+              </OrganiserRoute>
+            } 
+          />
+
           {/* User Profile - Protected Route */}
           <Route 
             path="/user/profile" 
             element={
               <ProtectedRoute>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">User Profile</h1>
-                    <p className="text-gray-600">Profile page coming soon...</p>
-                  </div>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-4">User Profile</h1>
+                  <p className="text-gray-600">Profile page coming soon...</p>
                 </div>
               </ProtectedRoute>
             } 
@@ -104,11 +159,9 @@ const AppRouter = () => {
             path="/events" 
             element={
               <ProtectedRoute>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Events</h1>
-                    <p className="text-gray-600">Events page coming soon...</p>
-                  </div>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-4">Events</h1>
+                  <p className="text-gray-600">Events page coming soon...</p>
                 </div>
               </ProtectedRoute>
             } 
@@ -119,11 +172,9 @@ const AppRouter = () => {
             path="/stats" 
             element={
               <ProtectedRoute>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                  <div className="text-center">
-                    <h1 className="text-2xl font-bold text-gray-900 mb-4">Statistics</h1>
-                    <p className="text-gray-600">Stats page coming soon...</p>
-                  </div>
+                <div className="text-center">
+                  <h1 className="text-2xl font-bold text-gray-900 mb-4">Statistics</h1>
+                  <p className="text-gray-600">Stats page coming soon...</p>
                 </div>
               </ProtectedRoute>
             } 
@@ -133,7 +184,7 @@ const AppRouter = () => {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Router>
-    </ClerkProvider>
+    
   );
 };
 

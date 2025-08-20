@@ -1,14 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Star, Calendar, ArrowRight, HelpCircle, BarChart3, LayoutDashboard } from 'lucide-react';
+import { Search, Star, Calendar, ArrowRight, HelpCircle, BarChart3, LayoutDashboard, Menu, X } from 'lucide-react';
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/clerk-react';
 
 const LandingPage = () => {
   const { user } = useUser();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Check if user is admin or organiser based on email - fix the email access
+  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
+  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'organiser@eventhub.com';
+  
+  // Debug logging
+  console.log('User object:', user);
+  console.log('User email:', user?.primaryEmailAddress?.emailAddress);
+  console.log('Is admin:', isAdmin);
+  console.log('Is organiser:', isOrganiser);
+  
+  // Determine redirect URL based on user role
+  const getRedirectUrl = () => {
+    if (isAdmin) {
+      return '/admin/dashboard';
+    } else if (isOrganiser) {
+      return '/organiser/dashboard';
+    }
+    return '/user/dashboard';
+  };
+
+  // Get user role for display
+  const getUserRole = () => {
+    if (isAdmin) return 'Admin';
+    if (isOrganiser) return 'Organiser';
+    return 'User';
+  };
+
+  // Get role badge color
+  const getRoleBadgeColor = () => {
+    if (isAdmin) return 'bg-purple-100 text-purple-700';
+    if (isOrganiser) return 'bg-orange-100 text-orange-700';
+    return 'bg-blue-100 text-blue-700';
+  };
 
   const categories = ['All', 'Technology', 'Cultural', 'Business', 'Science', 'Career', 'Entertainment'];
   
@@ -34,29 +69,34 @@ const LandingPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <header className="px-6 py-4 flex justify-between items-center">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
-            <Calendar className="w-6 h-6 text-white" />
+      <header className="px-4 sm:px-6 py-4 flex justify-between items-center relative">
+        <div className="flex items-center space-x-2 sm:space-x-3">
+          <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+            <Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">EventHub</h1>
-            <p className="text-sm text-gray-600">Event & Campus Management</p>
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900">EventHub</h1>
+            <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Event & Campus Management</p>
           </div>
         </div>
         
-        <div className="flex items-center space-x-6">
-          <nav className="hidden md:flex space-x-6">
+        {/* Desktop Navigation */}
+        <div className="hidden lg:flex items-center space-x-6">
+          <nav className="flex space-x-6">
             <Link to="/events" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
               <Calendar className="w-4 h-4" />
               <span>Events</span>
             </Link>
             <Link 
-              to="/user/dashboard" 
+              to={getRedirectUrl()} 
               className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2"
             >
               <LayoutDashboard className="w-4 h-4" />
-              <span>Dashboard</span>
+              <span>
+                {isAdmin ? 'Admin Dashboard' : 
+                 isOrganiser ? 'Organiser Dashboard' : 
+                 'Dashboard'}
+              </span>
             </Link>
             <Link to="/stats" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
               <BarChart3 className="w-4 h-4" />
@@ -66,10 +106,10 @@ const LandingPage = () => {
           
           {/* Authentication Section */}
           <SignedOut>
-            <SignInButton mode="modal" afterSignInUrl="/user/dashboard">
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-xl flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <span className="font-medium">Get Started</span>
-                <ArrowRight className="w-4 h-4" />
+            <SignInButton mode="modal" afterSignInUrl={getRedirectUrl()}>
+              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                <span className="font-medium text-sm sm:text-base">Get Started</span>
+                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
               </Button>
             </SignInButton>
           </SignedOut>
@@ -79,7 +119,7 @@ const LandingPage = () => {
               <UserButton 
                 appearance={{
                   elements: {
-                    avatarBox: "w-10 h-10",
+                    avatarBox: "w-8 h-8 sm:w-10 sm:h-10",
                     userButtonPopoverCard: "shadow-xl border border-gray-200",
                     userButtonPopoverActionButton: "hover:bg-gray-50"
                   }
@@ -89,16 +129,102 @@ const LandingPage = () => {
                 <p className="text-sm font-medium text-gray-900">
                   {user?.firstName || user?.fullName || 'User'}
                 </p>
+                {(isAdmin || isOrganiser) && (
+                  <Badge className={`${getRoleBadgeColor()} text-xs mt-1`}>
+                    {getUserRole()}
+                  </Badge>
+                )}
               </div>
             </div>
           </SignedIn>
         </div>
+
+        {/* Mobile Menu Button */}
+        <div className="lg:hidden flex items-center space-x-3">
+          <SignedOut>
+            <SignInButton mode="modal" afterSignInUrl={getRedirectUrl()}>
+              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-1.5 rounded-lg text-xs">
+                Get Started
+              </Button>
+            </SignInButton>
+          </SignedOut>
+          
+          <SignedIn>
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8",
+                  userButtonPopoverCard: "shadow-xl border border-gray-200",
+                  userButtonPopoverActionButton: "hover:bg-gray-50"
+                }
+              }}
+            />
+          </SignedIn>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg lg:hidden z-50">
+            <nav className="px-4 py-4 space-y-3">
+              <Link 
+                to="/events" 
+                className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Events</span>
+              </Link>
+              <Link 
+                to={getRedirectUrl()} 
+                className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>
+                  {isAdmin ? 'Admin Dashboard' : 
+                   isOrganiser ? 'Organiser Dashboard' : 
+                   'Dashboard'}
+                </span>
+              </Link>
+              <Link 
+                to="/stats" 
+                className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Stats</span>
+              </Link>
+              
+              <SignedIn>
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-900 mb-2">
+                    {user?.firstName || user?.fullName || 'User'}
+                  </p>
+                  {(isAdmin || isOrganiser) && (
+                    <Badge className={`${getRoleBadgeColor()} text-xs`}>
+                      {getUserRole()}
+                    </Badge>
+                  )}
+                </div>
+              </SignedIn>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero Section */}
-      <main className="px-6 py-16 text-center">
+      <main className="px-4 sm:px-6 py-8 sm:py-16 text-center">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
             Discover Amazing{' '}
             <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Campus
@@ -108,27 +234,27 @@ const LandingPage = () => {
             </span>
           </h1>
           
-          <p className="text-xl text-gray-600 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-gray-600 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4">
             Join thousands of students in exploring workshops, conferences, cultural events, and networking opportunities right on your campus.
           </p>
 
           {/* Search Bar */}
-          <div className="relative max-w-2xl mx-auto mb-12">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <div className="relative max-w-2xl mx-auto mb-8 sm:mb-12 px-4">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
             <Input
               type="text"
               placeholder="Search events, categories, or keywords..."
-              className="w-full pl-12 pr-4 py-4 text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
+              className="w-full pl-12 pr-4 py-3 sm:py-4 text-base sm:text-lg border-2 border-gray-200 rounded-xl focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all"
             />
           </div>
 
           {/* Category Pills */}
-          <div className="flex flex-wrap justify-center gap-3 mb-16">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-12 sm:mb-16 px-4">
             {categories.map((category, index) => (
               <Button
                 key={category}
                 variant={index === 0 ? "default" : "outline"}
-                className={`px-6 py-3 rounded-full text-sm font-medium transition-all ${
+                className={`px-3 sm:px-6 py-2 sm:py-3 rounded-full text-xs sm:text-sm font-medium transition-all ${
                   index === 0 
                     ? 'bg-blue-600 hover:bg-blue-700 text-white' 
                     : 'border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600'
@@ -142,18 +268,18 @@ const LandingPage = () => {
       </main>
 
       {/* Featured Events Section */}
-      <section className="px-6 pb-16">
+      <section className="px-4 sm:px-6 pb-12 sm:pb-16">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-center space-x-2 mb-8">
-            <Star className="w-6 h-6 text-yellow-500" />
-            <h2 className="text-2xl font-bold text-gray-900">Featured Events</h2>
+          <div className="flex items-center space-x-2 mb-6 sm:mb-8">
+            <Star className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-500" />
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Featured Events</h2>
           </div>
           
-          <div className="flex space-x-6 overflow-x-auto pb-4 scrollbar-hide">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:space-x-6 gap-4 lg:gap-0 lg:overflow-x-auto pb-4 scrollbar-hide">
             {featuredEvents.map((event) => (
-              <Card key={event.id} className="min-w-[300px] border-0 shadow-lg">
+              <Card key={event.id} className="lg:min-w-[300px] border-0 shadow-lg">
                 <CardContent className="p-0">
-                  <div className={`relative w-[300px] h-[200px] rounded-xl overflow-hidden ${event.background}`}>
+                  <div className={`relative w-full h-48 sm:h-56 lg:w-[300px] lg:h-[200px] rounded-xl overflow-hidden ${event.background}`}>
                     {/* Abstract background with speckles */}
                     <div className={`absolute inset-0 ${event.speckles} opacity-20`} 
                          style={{
@@ -162,15 +288,15 @@ const LandingPage = () => {
                          }} />
                     
                     {/* Status Badge */}
-                    <div className="absolute top-4 left-4">
-                      <Badge className="bg-green-500 hover:bg-green-600 text-white border-0">
+                    <div className="absolute top-3 sm:top-4 left-3 sm:left-4">
+                      <Badge className="bg-green-500 hover:bg-green-600 text-white border-0 text-xs sm:text-sm">
                         {event.status}
                       </Badge>
                     </div>
                     
                     {/* Category Badge */}
-                    <div className="absolute bottom-4 right-4">
-                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-4">
+                      <Badge variant="secondary" className="bg-white/20 text-white border-white/30 text-xs sm:text-sm">
                         {event.category}
                       </Badge>
                     </div>
@@ -183,12 +309,12 @@ const LandingPage = () => {
       </section>
 
       {/* Help Button */}
-      <div className="fixed bottom-6 right-6">
+      <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40">
         <Button
           size="icon"
-          className="w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-600 hover:bg-blue-700 shadow-lg"
         >
-          <HelpCircle className="w-6 h-6 text-white" />
+          <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </Button>
       </div>
 
