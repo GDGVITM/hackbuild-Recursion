@@ -1,4 +1,4 @@
-# EventX – Smart Event Management & Check-in System
+# EventHub – Smart Event Management & Check-in System
 *Team Recursion*
 
 ## Overview
@@ -19,7 +19,7 @@ Traditional event management in colleges suffers from:
 ---
 
 ## Our Solution
-EventX offers:
+EventHub offers:
 - **QR-based check-in system** for participants.  
 - **Secure registration system** linked with unique QR codes.  
 - **Role-based access control** for admins, organizers, and volunteers.  
