@@ -318,6 +318,99 @@ const LandingPage = () => {
         </Button>
       </div>
 
+      {/* Footer */}
+      <footer className="bg-gray-900 text-white py-8 sm:py-12 mt-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+            {/* Company Info */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                  <Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-bold">EventHub</h3>
+                  <p className="text-sm text-gray-400">Event & Campus Management</p>
+                </div>
+              </div>
+              <p className="text-sm text-gray-400 leading-relaxed">
+                Connecting students with amazing campus events, workshops, and networking opportunities.
+              </p>
+            </div>
+
+            {/* Quick Links */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold">Quick Links</h4>
+              <div className="space-y-2">
+                <Link to="/events" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Browse Events
+                </Link>
+                <Link to="/stats" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Event Statistics
+                </Link>
+                <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  About Us
+                </Link>
+                <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Contact Support
+                </Link>
+              </div>
+            </div>
+
+            {/* Legal & Policies */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold">Legal & Policies</h4>
+              <div className="space-y-2">
+                <Link to="/terms-conditions" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Terms & Conditions
+                </Link>
+                <Link to="/privacy" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Privacy Policy
+                </Link>
+                <Link to="/cancellation-refunds" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Cancellation & Refunds
+                </Link>
+                <Link to="/shipping" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Shipping Policy
+                </Link>
+              </div>
+            </div>
+
+            {/* Contact Info */}
+            <div className="space-y-4">
+              <h4 className="text-lg font-semibold">Contact Us</h4>
+              <div className="space-y-2 text-sm text-gray-400">
+                <p>Email: support@eventhub.com</p>
+                <p>Phone: +1 (555) 123-4567</p>
+                <p>Address: 123 Event Street</p>
+                <p>Tech City, TC 12345</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <p className="text-sm text-gray-400">
+              © 2024 EventHub. All rights reserved.
+            </p>
+            <div className="flex space-x-6 text-sm">
+              <Link to="/terms-conditions" className="text-gray-400 hover:text-white transition-colors">
+                Terms
+              </Link>
+              <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
+                Privacy
+              </Link>
+              <Link to="/cancellation-refunds" className="text-gray-400 hover:text-white transition-colors">
+                Refunds
+              </Link>
+              <Link to="/shipping" className="text-gray-400 hover:text-white transition-colors">
+                Shipping
+              </Link>
+            </div>
+          </div>
+        </div>
+      </footer>
+
       {/* Custom scrollbar styles */}
       <style>{`
         .scrollbar-hide {

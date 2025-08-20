@@ -7,6 +7,10 @@ import AdminDashboard from '../pages/admin/AdminDashboard';
 import OrganiserDashboard from '../pages/organiser/OrganiserDashboard';
 import Login from '../pages/auth/Login';
 import Register from '../pages/auth/Register';
+import CancellationRefunds from '../pages/common/CancellationRefunds';
+import TermsConditions from '../pages/common/TermsConditions';
+import Shipping from '../pages/common/Shipping';
+import Privacy from '../pages/common/Privacy';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -56,7 +60,7 @@ const PublicRoute = ({ children }) => {
   
   // Check if user is admin or organiser based on email
   const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
-  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'tanishq7msd@gmail.com';
+  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'organiser@eventhub.com';
   
   return (
     <>
@@ -179,6 +183,12 @@ const AppRouter = () => {
               </ProtectedRoute>
             } 
           />
+
+          {/* Policy Pages - Public Routes (for Razorpay KYC) */}
+          <Route path="/cancellation-refunds" element={<CancellationRefunds />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/shipping" element={<Shipping />} />
+          <Route path="/privacy" element={<Privacy />} />
 
           {/* Catch all route - redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
