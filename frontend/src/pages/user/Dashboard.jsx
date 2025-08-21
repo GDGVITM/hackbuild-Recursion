@@ -203,29 +203,49 @@ const Dashboard = () => {
           </div>
 
           {/* Mobile Navigation Menu */}
-          {mobileMenuOpen && (
-            <nav className="lg:hidden mt-4 pt-4 border-t border-gray-200 space-y-3">
-              <a href="#" className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2">
-                <Calendar className="w-4 h-4" />
-                <span>Browse Events</span>
-              </a>
-              <a href="#" className="block bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2">
-                <Calendar className="w-4 h-4" />
-                <span>My Events</span>
-              </a>
-              <a href="#" className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2">
-                <QrCode className="w-4 h-4" />
-                <span>My Tickets</span>
-              </a>
-              <div className="pt-2 border-t border-gray-200">
-                <span className="text-sm text-gray-600">Logged in as:</span>
-                <Badge className={`${getRoleBadgeColor()} px-3 py-1 rounded-full flex items-center space-x-1 mt-1`}>
-                  <GraduationCap className="w-3 h-3" />
-                  <span>{userRole}</span>
-                </Badge>
-              </div>
-            </nav>
-          )}
+          {/* Mobile Navigation Menu */}
+{mobileMenuOpen && (
+  <nav className="lg:hidden mt-4 pt-4 border-t border-gray-200 space-y-3">
+    
+    {/* Browse Events */}
+    <Link
+      to="/events"
+      className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+    >
+      <Calendar className="w-4 h-4" />
+      <span>Browse Events</span>
+    </Link>
+
+    {/* My Events */}
+    <Link
+      to="/user/my-events"
+      className="block bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2"
+    >
+      <Calendar className="w-4 h-4" />
+      <span>My Events</span>
+    </Link>
+
+    {/* My Tickets */}
+    <Link
+      to="/user/my-tickets"
+      className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+    >
+      <QrCode className="w-4 h-4" />
+      <span>My Tickets</span>
+    </Link>
+
+    {/* Logged in user info */}
+    <div className="pt-2 border-t border-gray-200">
+      <span className="text-sm text-gray-600">Logged in as:</span>
+      <Badge className={`${getRoleBadgeColor()} px-3 py-1 rounded-full flex items-center space-x-1 mt-1`}>
+        <GraduationCap className="w-3 h-3" />
+        <span>{userRole}</span>
+      </Badge>
+    </div>
+
+  </nav>
+)}
+
         </div>
       </header>
 

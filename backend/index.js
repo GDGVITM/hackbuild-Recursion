@@ -81,6 +81,16 @@ app.use((err, req, res, next) => {
   });
 });
 
+
+router.get("/:id", async (req, res) => {
+  const event = await Event.findById(req.params.id).populate("committee");
+  if (!event) return res.status(404).json({ error: "Event not found" });
+  res.json(event);
+});
+
+
+
+
 // 404 route
 app.use('/*any', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
