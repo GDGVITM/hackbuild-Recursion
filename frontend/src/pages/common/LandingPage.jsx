@@ -110,12 +110,19 @@ const LandingPage = () => {
           
           {/* Authentication Section */}
           <SignedOut>
-            <SignInButton mode="modal" afterSignInUrl={getRedirectUrl()}>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-                <span className="font-medium text-sm sm:text-base">Get Started</span>
-                <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
-              </Button>
-            </SignInButton>
+            <div className="flex items-center space-x-3">
+              <Link to="/auth/login">
+                <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth/register">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                  <span className="font-medium text-sm sm:text-base">Get Started</span>
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+              </Link>
+            </div>
           </SignedOut>
           
           <SignedIn>
@@ -146,11 +153,18 @@ const LandingPage = () => {
         {/* Mobile Menu Button */}
         <div className="lg:hidden flex items-center space-x-3">
           <SignedOut>
-            <SignInButton mode="modal" afterSignInUrl={getRedirectUrl()}>
-              <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-1.5 rounded-lg text-xs">
-                Get Started
-              </Button>
-            </SignInButton>
+            <div className="flex items-center space-x-2">
+              <Link to="/auth/login">
+                <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth/register">
+                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-1.5 rounded-lg text-xs">
+                  Get Started
+                </Button>
+              </Link>
+            </div>
           </SignedOut>
           
           <SignedIn>

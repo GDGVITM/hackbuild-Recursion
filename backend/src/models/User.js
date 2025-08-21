@@ -4,37 +4,24 @@ const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   passwordHash: { type: String, required: true }, // bcrypt hashed
-  roles: {
-    type: [String],
-    enum: ["admin", "organizer", "volunteer", "student"],
-    default: ["student"], // every user starts as student
-  },
-  activeRole: { 
-    type: String, 
-    enum: ["admin", "organizer", "volunteer", "student"],
-    default: "student" 
-  }, // which dashboard to show after login
-
+  role: { type: String, enum: ["admin", "organizer", "volunteer", "student"], default: "student" },
   phone: { type: String },
-  collegeId: { type: mongoose.Schema.Types.ObjectId, ref: "College" },
-
+  collegeId: { type: mongoose.Schema.Types.ObjectId, ref: "College" }, // optional for multi-college later
   createdAt: { type: Date, default: Date.now },
-
   notificationPreferences: {
     email: { type: Boolean, default: true },
     sms: { type: Boolean, default: false },
     whatsapp: { type: Boolean, default: false },
-    browser: { type: Boolean, default: true },
+    browser: { type: Boolean, default: true }
   },
+  // Clerk integration fields
+  clerkId: { type: String, unique: true, sparse: true }, // Clerk user ID
+  isClerkUser: { type: Boolean, default: false }, // Flag to identify Clerk users
 });
 
-// Ensure activeRole is always inside roles
-userSchema.pre("save", function (next) {
-  if (!this.roles.includes(this.activeRole)) {
-    this.activeRole = this.roles[0]; // fallback to first role
-  }
-  next();
-});
+// Index for faster queries
+userSchema.index({ email: 1 });
+userSchema.index({ clerkId: 1 });
 
 // Export as default
 export default mongoose.model("User", userSchema);
