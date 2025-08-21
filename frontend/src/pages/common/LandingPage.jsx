@@ -348,6 +348,9 @@ const LandingPage = () => {
                 <Link to="/stats" className="block text-gray-400 hover:text-white transition-colors text-sm">
                   Event Statistics
                 </Link>
+                <Link to="/payment" className="block text-gray-400 hover:text-white transition-colors text-sm">
+                  Make Payment
+                </Link>
                 <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
                   About Us
                 </Link>

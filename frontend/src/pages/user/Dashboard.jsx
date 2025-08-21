@@ -105,12 +105,12 @@ const Dashboard = () => {
                 </div>
                 <div>
                   <h1 className="text-lg sm:text-2xl font-bold text-gray-900">EventHub</h1>
-                  <p className="text-xs sm:text-sm text-gray-600 hidden sm:block">Access events, register, and manage your calendar.</p>
+                  
                 </div>
               </div>
 
               {/* Desktop Navigation Links */}
-              <nav className="hidden lg:flex space-x-6">
+              <nav className="hidden lg:flex space-x-6 items-center justify-center">
                 <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
                   <Calendar className="w-4 h-4" />
                   <span>Browse Events</span>
@@ -138,14 +138,7 @@ const Dashboard = () => {
                 </Button>
               </div>
 
-              {/* User Info - Desktop Only */}
-              <div className="hidden md:flex items-center space-x-3">
-                <span className="text-sm text-gray-600">Logged in as:</span>
-                <Badge className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center space-x-1">
-                  <GraduationCap className="w-3 h-3" />
-                  <span>Student</span>
-                </Badge>
-              </div>
+              
 
               {/* User Profile */}
               <div className="flex items-center space-x-2">

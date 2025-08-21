@@ -11,6 +11,8 @@ import CancellationRefunds from '../pages/common/CancellationRefunds';
 import TermsConditions from '../pages/common/TermsConditions';
 import Shipping from '../pages/common/Shipping';
 import Privacy from '../pages/common/Privacy';
+import Payment from '../pages/common/Payment';
+import PaymentSuccess from '../pages/common/PaymentSuccess';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
@@ -189,6 +191,12 @@ const AppRouter = () => {
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/shipping" element={<Shipping />} />
           <Route path="/privacy" element={<Privacy />} />
+
+          {/* Payment Route */}
+          <Route path="/payment" element={<Payment />} />
+
+          {/* Payment Success Route */}
+          <Route path="/payment-success" element={<PaymentSuccess />} />
 
           {/* Catch all route - redirect to home */}
           <Route path="*" element={<Navigate to="/" replace />} />
