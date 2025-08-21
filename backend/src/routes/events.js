@@ -35,9 +35,8 @@ router.get("/", async (req, res) => {
 // POST create event
 router.post("/", upload.single("image"), async (req, res) => {
   try {
-
     console.log("Creating event with data:", req.body);
-    
+
     const {
       title,
       description,
@@ -85,11 +84,16 @@ router.post("/", upload.single("image"), async (req, res) => {
       integrations: parsedIntegrations
     });
 
-
     console.log("Event data before saving:", event);
+
     const savedEvent = await event.save();
+
+    // ✅ Only one response
+    res.status(201).json({
+      message: "Event created successfully!",
+      event: savedEvent
+    });
     console.log("Event created successfully:", savedEvent);
-    res.status(201).json(savedEvent);
 
   } catch (err) {
     console.error(err);

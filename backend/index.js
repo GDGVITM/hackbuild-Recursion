@@ -8,7 +8,6 @@ import mongoose from 'mongoose';
 import { Event } from './models.js';
 import eventRoutes from './src/routes/events.js';
 import paymentRoutes from './src/routes/payment.routes.js';
-import { connectDB } from './src/database.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -26,10 +25,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
-import eventRoutes from './src/routes/eventRoutes.js';
 app.use("/api/events", eventRoutes);
 
-import paymentRoutes from './src/routes/payment.routes.js';
 app.use("/api/payments", paymentRoutes);
 
 // Root endpoint
