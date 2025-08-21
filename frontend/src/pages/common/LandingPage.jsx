@@ -7,6 +7,8 @@ import { Calendar, ArrowRight, HelpCircle, LayoutDashboard, Menu, X } from 'luci
 import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from '@clerk/clerk-react';
 import { formatDistanceToNow } from "date-fns";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
+import { MapPin, Users, CalendarDays } from 'lucide-react';
 
 const LandingPage = () => {
   const { user } = useUser();
