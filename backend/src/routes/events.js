@@ -6,12 +6,6 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // Cloudinary configuration
-console.log(
-  process.env.CLOUDINARY_CLOUD_NAME,
-  process.env.CLOUDINARY_API_KEY,
-  process.env.CLOUDINARY_API_SECRET
-);
-
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
@@ -24,11 +18,23 @@ const upload = multer({ dest: "temp/" }); // temporary storage
 // GET all events
 router.get("/", async (req, res) => {
   try {
-    const events = await Event.find().populate("committee");
+    const events = await Event.find().populate("committee").sort({ startTime: 1 });
     res.json(events);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch events" });
+  }
+});
+
+// GET single event by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const event = await Event.findById(req.params.id).populate("committee");
+    if (!event) return res.status(404).json({ error: "Event not found" });
+    res.json(event);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch event" });
   }
 });
 
@@ -64,7 +70,7 @@ router.post("/", upload.single("image"), async (req, res) => {
       imageUrl = result.secure_url;
     }
 
-    // Parse JSON fields from frontend (if sent as JSON strings)
+    // Parse JSON fields from frontend
     const parsedCategories = categories ? JSON.parse(categories) : [];
     const parsedTracks = tracks ? JSON.parse(tracks) : [];
     const parsedIntegrations = integrations ? JSON.parse(integrations) : {};
@@ -88,7 +94,6 @@ router.post("/", upload.single("image"), async (req, res) => {
 
     const savedEvent = await event.save();
 
-    // ✅ Only one response
     res.status(201).json({
       message: "Event created successfully!",
       event: savedEvent

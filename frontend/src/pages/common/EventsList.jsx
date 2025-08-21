@@ -7,6 +7,7 @@ import { Calendar, ArrowRight, HelpCircle, LayoutDashboard, Menu, X, BarChart3 }
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/clerk-react';
 import { formatDistanceToNow } from 'date-fns';
 
+
 const EventsList = () => {
   const { user } = useUser();
   const navigate = useNavigate();
@@ -297,18 +298,13 @@ const EventsList = () => {
                     </div>
 
                     {/* Floating View Button */}
-                    <button
-                      className="absolute bottom-3 right-3 bg-indigo-500 text-white px-3 py-1 rounded-full shadow hover:bg-indigo-600 text-xs font-medium transition"
-                      onClick={() => {
-                        if (!user) {
-                          navigate("/auth/login");
-                          return;
-                        }
-                        navigate(`/events/${event._id}`);
-                      }}
-                    >
-                      View
-                    </button>
+       <Link to={`/events/${event._id}`}>
+  <button className="absolute bottom-3 right-3 bg-indigo-500 text-white px-3 py-1 rounded-full shadow hover:bg-indigo-600 text-xs font-medium transition">
+    View
+  </button>
+</Link>
+
+
                   </div>
                 );
               })}
