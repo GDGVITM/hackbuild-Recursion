@@ -23,5 +23,7 @@ const userSchema = new mongoose.Schema({
 userSchema.index({ email: 1 });
 userSchema.index({ clerkId: 1 });
 
+// Use existing model if already defined, otherwise create new
+const User = mongoose.models.User || mongoose.model("User", userSchema);
 
-export default mongoose.model("User", userSchema);
+export default User;

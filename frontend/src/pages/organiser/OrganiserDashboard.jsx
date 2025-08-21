@@ -89,7 +89,7 @@ const CATEGORY_TYPES = [
   }, []);
 
   // createEvent function
-  const createEvent = async () => {
+const createEvent = async () => {
   try {
     const formData = new FormData();
 
@@ -124,13 +124,39 @@ const CATEGORY_TYPES = [
       },
     });
 
+    // Show success acknowledgment
+    alert(res.data.message || "Event created successfully!");
+
     console.log("Event created successfully:", res.data);
-    // Close modal or refresh event list here
+
+    // Close the modal
+    setShowCreateEventModal(false);
+
+    // Reset the form
+    setEventData({
+      title: "",
+      committee: "",
+      startTime: "",
+      endTime: "",
+      location: "",
+      maxAttendees: "",
+      categories: [],
+      description: "",
+      tracks: [],
+      price: 0,
+      imageFile: null,
+      integrations: {}
+    });
+
+    // // Optional: refresh the event list if you have a fetch function
+    // fetchEvents();
 
   } catch (err) {
     console.error("Failed to create event:", err);
+    alert("Failed to create event. Please try again.");
   }
 };
+
 
 
   const { user } = useUser();
