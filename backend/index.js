@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
@@ -8,6 +7,9 @@ import mongoose from 'mongoose';
 import { Event } from './models.js';
 import eventRoutes from './src/routes/events.js';
 import paymentRoutes from './src/routes/payment.routes.js';
+import authRoutes from './src/routes/auth.routes.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -28,10 +30,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api/events", eventRoutes);
 
 app.use("/api/payments", paymentRoutes);
-
-// Root endpoint
-// Connect to MongoDB
-connectDB();
 
 // Static committees
 const committees = ["GDG", "CSI"];
@@ -71,13 +69,10 @@ app.get("/api/events", async (req, res) => {
   }
 });
 
-// Payment routes
-import authRoutes from './src/routes/auth.routes.js';
-
 app.use("/api/payments", paymentRoutes);
 app.use("/api/auth", authRoutes);
 
-// Error handling middleware
+
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ 
@@ -90,7 +85,7 @@ app.use((err, req, res, next) => {
 app.use('/*any', (req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
-// Connect to MongoDB
+
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch(err => console.error("MongoDB connection error:", err));
