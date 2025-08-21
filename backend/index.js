@@ -26,6 +26,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Routes
 app.use("/api/events", eventRoutes);
 
 app.use("/api/payments", paymentRoutes);
