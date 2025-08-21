@@ -10,14 +10,14 @@ if (!PUBLISHABLE_KEY) {
 const Login = () => {
   return (
     <div>
-        <header>
-      <SignedOut>
-        <SignInButton />
-      </SignedOut>
-      <SignedIn>
-        <UserButton />
-      </SignedIn>
-    </header>
+      <header>
+        <SignedOut>
+          <SignInButton />
+        </SignedOut>
+        <SignedIn>
+          <UserButton />
+        </SignedIn>
+      </header>
     </div>
   )
 }
