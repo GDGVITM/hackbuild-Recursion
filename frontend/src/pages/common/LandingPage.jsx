@@ -31,7 +31,6 @@ const LandingPage = () => {
     fetchEvents();
   }, []);
 
-  // Filter events based on search + category
   const filteredEvents = events.filter((event) => {
     const matchesSearch =
       event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -44,7 +43,6 @@ const LandingPage = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // User role stuff
   const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
   const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'aravmahind05@gmail.com';
 
@@ -132,9 +130,8 @@ const LandingPage = () => {
               </Link>
             </div>
           </SignedOut>
-          
           <SignedIn>
-            <UserButton 
+            <UserButton
               appearance={{
                 elements: {
                   avatarBox: "w-8 h-8",
@@ -144,7 +141,6 @@ const LandingPage = () => {
               }}
             />
           </SignedIn>
-          
           <Button
             variant="ghost"
             size="icon"
@@ -159,35 +155,34 @@ const LandingPage = () => {
         {mobileMenuOpen && (
           <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg lg:hidden z-50">
             <nav className="px-4 py-4 space-y-3">
-              <Link 
-                to="/events" 
+              <Link
+                to="/events"
                 className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <Calendar className="w-4 h-4" />
                 <span>Events</span>
               </Link>
-              <Link 
-                to={getRedirectUrl()} 
+              <Link
+                to={getRedirectUrl()}
                 className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <LayoutDashboard className="w-4 h-4" />
                 <span>
-                  {isAdmin ? 'Admin Dashboard' : 
-                   isOrganiser ? 'Organiser Dashboard' : 
-                   'Dashboard'}
+                  {isAdmin ? 'Admin Dashboard' :
+                    isOrganiser ? 'Organiser Dashboard' :
+                      'Dashboard'}
                 </span>
               </Link>
-              <Link 
-                to="/stats" 
+              <Link
+                to="/stats"
                 className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Stats</span>
               </Link>
-              
               <SignedIn>
                 <div className="pt-3 border-t border-gray-200">
                   <p className="text-sm font-medium text-gray-900 mb-2">
@@ -236,8 +231,8 @@ const LandingPage = () => {
               onClick={() => setSelectedCategory(category)}
               variant={selectedCategory === category ? "default" : "outline"}
               className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${selectedCategory === category
-                  ? 'bg-blue-600 text-white'
-                  : 'border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600'
+                ? 'bg-blue-600 text-white'
+                : 'border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:text-blue-600'
                 }`}
             >
               {category}
@@ -246,76 +241,76 @@ const LandingPage = () => {
         </div>
       </main>
 
-<section className="px-6 pb-16">
-      {(!filteredEvents || filteredEvents.length === 0) ? (
-        <p className="text-center text-gray-500">No events found.</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
-          {filteredEvents
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)) // newest first
-            .map((event) => {
-              const timeAgo = event?.createdAt
-                ? formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })
-                : "";
-
-              return (
-                <div
-                  key={event._id}
-                  className="bg-white border rounded-xl shadow hover:shadow-lg transition overflow-hidden relative"
-                >
-                  {/* Image */}
-                  <div className="h-40 w-full bg-gray-200">
-                    <img
-                      src={event.image || "https://via.placeholder.com/400x200.png?text=Event"}
-                      alt={event.title}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-4">
-                    <h3 className="text-lg font-semibold">{event.title}</h3>
-                    <p className="text-gray-600 text-sm line-clamp-2">{event.description}</p>
-
-                    <div className="mt-3 text-sm text-gray-500 space-y-1">
-                      <p>📍 {event.location || "TBA"}</p>
-                      <p>👥 Max Attendees: {event.maxAttendees || "Unlimited"}</p>
-                      <p>🗓 {new Date(event.startTime).toLocaleDateString()}</p>
-                    </div>
-
-                    {/* Category badges */}
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {(event.categories || []).map((cat) => (
-                        <Badge key={cat} className="bg-blue-100 text-blue-700">{cat}</Badge>
-                      ))}
-                    </div>
-
-                    {/* Time ago */}
-                    {timeAgo && (
-                      <p className="mt-2 text-xs text-gray-400 italic">{timeAgo}</p>
-                    )}
-                  </div>
-
-                  {/* Floating View Button */}
-                  <button
-                    className="absolute bottom-3 right-3 bg-indigo-500 text-white px-3 py-1 rounded-full shadow hover:bg-indigo-600 text-xs font-medium transition"
-                    onClick={() => {
-                      if (!user) {
-                        navigate("/auth/login");
-                        return;
-                      }
-                      navigate(`/events/${event._id}`);
-                    }}
-                  >
-                    View
-                  </button>
+      {/* ========================================================================================= */}
+      {/* ============================ MODIFIED EVENTS SECTION START ============================ */}
+      {/* ========================================================================================= */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
+        {filteredEvents.length === 0 ? (
+          <p className="text-center text-gray-500">No events found.</p>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredEvents.slice(0, 6).map((event) => (
+              <Card
+                key={event._id}
+                className="w-full overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col h-xl"
+              >
+                {/* Image */}
+                <div className="w-full h-40 bg-gray-200">
+                  <img
+                    src={event.image || "https://via.placeholder.com/350x160.png?text=Event"}
+                    alt={event.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              );
-            })}
-        </div>
-      )}
-    </section>
 
+                {/* Content */}
+                <CardContent className="p-4 flex-grow">
+                  <div className="flex flex-wrap gap-1.5 mb-2">
+                    {event.categories.map((cat) => (
+                      <Badge key={cat} variant="outline" className="font-normal text-xs">
+                        {cat}
+                      </Badge>
+                    ))}
+                  </div>
+
+                  <h3 className="text-lg font-semibold leading-tight line-clamp-2">{event.title}</h3>
+                  <p className="text-sm text-gray-500 mt-1 line-clamp-2">{event.description}</p>
+
+                  <div className="mt-4 space-y-2 text-sm text-gray-700">
+                    <div className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 flex-shrink-0 text-gray-500" />
+                      <span className="truncate">{event.location || "TBA"}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-2 flex-shrink-0 text-gray-500" />
+                      <span>Max Attendees: {event.maxAttendees || "Unlimited"}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <CalendarDays className="h-4 w-4 mr-2 flex-shrink-0 text-gray-500" />
+                      <span>{new Date(event.startTime).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </CardContent>
+
+                {/* Footer with Button */}
+                <CardFooter className="p-4 pt-0 mt-auto">
+                  <Link to="/auth/login" className="w-full">
+                    <Button
+                      className="w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:from-blue-700 hover:to-purple-700"
+                      size="sm"
+                    >
+                      View Details
+                    </Button>
+                  </Link>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        )}
+      </section>
+      {/* ======================================================================================= */}
+      {/* ============================ MODIFIED EVENTS SECTION END ============================ */}
+      {/* ======================================================================================= */}
 
       {/* Help Button */}
       <div className="fixed bottom-6 right-6 z-40">
@@ -343,49 +338,26 @@ const LandingPage = () => {
                 Connecting students with amazing campus events, workshops, and networking opportunities.
               </p>
             </div>
-
-            {/* Quick Links */}
+            {/* Quick Links, Legal, Contact */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Quick Links</h4>
               <div className="space-y-2">
-                <Link to="/events" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Browse Events
-                </Link>
-                <Link to="/stats" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Event Statistics
-                </Link>
-                <Link to="/payment" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Make Payment
-                </Link>
-                <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  About Us
-                </Link>
-                <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Contact Support
-                </Link>
+                <Link to="/events" className="block text-gray-400 hover:text-white transition-colors text-sm">Browse Events</Link>
+                <Link to="/stats" className="block text-gray-400 hover:text-white transition-colors text-sm">Event Statistics</Link>
+                <Link to="/payment" className="block text-gray-400 hover:text-white transition-colors text-sm">Make Payment</Link>
+                <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">About Us</Link>
+                <Link to="/" className="block text-gray-400 hover:text-white transition-colors text-sm">Contact Support</Link>
               </div>
             </div>
-
-            {/* Legal & Policies */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Legal & Policies</h4>
               <div className="space-y-2">
-                <Link to="/terms-conditions" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Terms & Conditions
-                </Link>
-                <Link to="/privacy" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Privacy Policy
-                </Link>
-                <Link to="/cancellation-refunds" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Cancellation & Refunds
-                </Link>
-                <Link to="/shipping" className="block text-gray-400 hover:text-white transition-colors text-sm">
-                  Shipping Policy
-                </Link>
+                <Link to="/terms-conditions" className="block text-gray-400 hover:text-white transition-colors text-sm">Terms & Conditions</Link>
+                <Link to="/privacy" className="block text-gray-400 hover:text-white transition-colors text-sm">Privacy Policy</Link>
+                <Link to="/cancellation-refunds" className="block text-gray-400 hover:text-white transition-colors text-sm">Cancellation & Refunds</Link>
+                <Link to="/shipping" className="block text-gray-400 hover:text-white transition-colors text-sm">Shipping Policy</Link>
               </div>
             </div>
-
-            {/* Contact Info */}
             <div className="space-y-4">
               <h4 className="text-lg font-semibold">Contact Us</h4>
               <div className="space-y-2 text-sm text-gray-400">
@@ -396,40 +368,22 @@ const LandingPage = () => {
               </div>
             </div>
           </div>
-
           {/* Bottom Bar */}
           <div className="border-t border-gray-800 mt-8 pt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-            <p className="text-sm text-gray-400">
-              © 2024 EventHub. All rights reserved.
-            </p>
+            <p className="text-sm text-gray-400">© 2024 EventHub. All rights reserved.</p>
             <div className="flex space-x-6 text-sm">
-              <Link to="/terms-conditions" className="text-gray-400 hover:text-white transition-colors">
-                Terms
-              </Link>
-              <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">
-                Privacy
-              </Link>
-              <Link to="/cancellation-refunds" className="text-gray-400 hover:text-white transition-colors">
-                Refunds
-              </Link>
-              <Link to="/shipping" className="text-gray-400 hover:text-white transition-colors">
-                Shipping
-              </Link>
+              <Link to="/terms-conditions" className="text-gray-400 hover:text-white transition-colors">Terms</Link>
+              <Link to="/privacy" className="text-gray-400 hover:text-white transition-colors">Privacy</Link>
+              <Link to="/cancellation-refunds" className="text-gray-400 hover:text-white transition-colors">Refunds</Link>
+              <Link to="/shipping" className="text-gray-400 hover:text-white transition-colors">Shipping</Link>
             </div>
           </div>
         </div>
       </footer>
-
-      {/* Custom scrollbar styles */}
       <style>{`
-                .scrollbar-hide {
-                  -ms-overflow-style: none;
-                  scrollbar-width: none;
-                }
-                .scrollbar-hide::-webkit-scrollbar {
-                  display: none;
-                }
-              `}</style>
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+      `}</style>
     </div>
   );
 };
