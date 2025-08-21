@@ -120,6 +120,8 @@ const Dashboard = () => {
     }
   };
 
+  
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Bar */}
@@ -172,6 +174,10 @@ const Dashboard = () => {
 
               {/* User Profile */}
               <div className="flex items-center space-x-2">
+              <div className="hidden md:block">
+                  <p className="text-sm font-medium text-gray-900">{userName}</p>
+                  
+                </div>
                 <UserButton 
                   appearance={{
                     elements: {
@@ -181,13 +187,6 @@ const Dashboard = () => {
                     }
                   }}
                 />
-                <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">{userName}</p>
-                  <Badge className={`${getRoleBadgeColor()} text-xs mt-1`}>
-                    {userRole}
-                  </Badge>
-                </div>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
               </div>
 
               {/* Mobile Menu Button */}

@@ -2,6 +2,13 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/User.js";
 
+// Check if JWT_SECRET is configured
+const checkJWTSecret = () => {
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not configured in environment variables');
+  }
+};
+
 // Traditional login (for non-Clerk users)
 export const login = async (req, res) => {
   try {
@@ -10,6 +17,9 @@ export const login = async (req, res) => {
     if (!email || !password) {
       return res.status(400).json({ error: "Email and password are required" });
     }
+
+    // Check JWT_SECRET
+    checkJWTSecret();
 
     // Find user by email
     const user = await User.findOne({ email });
@@ -50,7 +60,11 @@ export const login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error.message.includes('JWT_SECRET')) {
+      res.status(500).json({ error: "Server configuration error. Please contact administrator." });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 };
 
@@ -62,6 +76,9 @@ export const register = async (req, res) => {
     if (!name || !email || !password) {
       return res.status(400).json({ error: "Name, email, and password are required" });
     }
+
+    // Check JWT_SECRET
+    checkJWTSecret();
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -105,7 +122,11 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.error("Registration error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error.message.includes('JWT_SECRET')) {
+      res.status(500).json({ error: "Server configuration error. Please contact administrator." });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 };
 
@@ -117,6 +138,9 @@ export const syncClerkUser = async (req, res) => {
     if (!clerkId || !email) {
       return res.status(400).json({ error: "Clerk ID and email are required" });
     }
+
+    // Check JWT_SECRET
+    checkJWTSecret();
 
     // Check if user already exists
     let user = await User.findOne({ 
@@ -169,7 +193,11 @@ export const syncClerkUser = async (req, res) => {
     });
   } catch (error) {
     console.error("Clerk sync error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    if (error.message.includes('JWT_SECRET')) {
+      res.status(500).json({ error: "Server configuration error. Please contact administrator." });
+    } else {
+      res.status(500).json({ error: "Internal server error" });
+    }
   }
 };
 
