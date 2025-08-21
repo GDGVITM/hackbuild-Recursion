@@ -12,8 +12,12 @@ const LandingPage = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Check if user is admin or organiser based on email - fix the email access
+  console.log(user?.primaryEmailAddress?.emailAddress);
+  
   const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
-  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'organiser@eventhub.com';
+  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'aravmahind05@gmail.com';
+
+  console.log(isAdmin);
   
   // Debug logging
   console.log('User object:', user);

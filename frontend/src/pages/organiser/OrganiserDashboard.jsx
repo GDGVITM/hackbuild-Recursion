@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import axios from 'axios';
+
 import { 
   Calendar, 
   Bell, 
@@ -46,6 +48,49 @@ import {
 import { UserButton, useUser } from '@clerk/clerk-react';
 
 const OrganiserDashboard = () => {
+  const [committees, setCommittees] = useState([
+  { _id: "gdg", name: "GDG" },
+  { _id: "csi", name: "CSI" }
+]);
+
+  const [eventData, setEventData] = useState({
+    title: "",
+    committee: "",
+    startTime: "",
+    endTime: "",
+    location: "",
+    maxAttendees: "",
+    categories: [],
+    description: "",
+    tracks: [],
+  });
+
+  // Fetch committees from backend
+  useEffect(() => {
+    const fetchCommittees = async () => {
+      try {
+        const res = await axios.get("/api/committees"); // adjust endpoint
+        setCommittees(res.data); // assuming res.data is an array of committees
+      } catch (err) {
+        console.error("Failed to fetch committees:", err);
+      }
+    };
+
+    fetchCommittees();
+  }, []);
+
+  // createEvent function
+  const createEvent = async () => {
+    try {
+      console.log("API Calling");
+      await axios.post("http://localhost:5000/api/events", eventData);
+      console.log("API Called Successfully");
+      // close modal or refresh list
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -104,6 +149,7 @@ const OrganiserDashboard = () => {
     { id: 2, title: 'Volunteer Meeting', message: 'Reminder: Volunteer briefing tomorrow', sent: '1 day ago', recipients: 12 },
     { id: 3, title: 'Venue Confirmation', message: 'Engineering Auditorium confirmed for Tech Summit', sent: '3 days ago', recipients: 156 }
   ];
+  
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -507,27 +553,105 @@ const OrganiserDashboard = () => {
         </main>
       </div>
 
-      {/* Create Event Modal */}
-      {showCreateEventModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-2xl mx-auto">
-            <h3 className="text-lg font-semibold mb-4">Create New Event</h3>
-            <div className="space-y-3 sm:space-y-4">
-              <Input placeholder="Event Name" className="text-sm" />
-              <Input placeholder="Date" type="date" className="text-sm" />
-              <Input placeholder="Venue" className="text-sm" />
-              <Textarea placeholder="Event Description" className="text-sm" />
-              <Input placeholder="Capacity" type="number" className="text-sm" />
-            </div>
-            <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-6">
-              <Button variant="outline" onClick={() => setShowCreateEventModal(false)} className="text-xs sm:text-sm">
-                Cancel
-              </Button>
-              <Button className="text-xs sm:text-sm">Create Event</Button>
-            </div>
-          </div>
+{/* Create Event Modal */}
+{showCreateEventModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-2xl mx-auto">
+      <h3 className="text-lg font-semibold mb-4">Create New Event</h3>
+
+      <div className="space-y-3 sm:space-y-4">
+        {/* Event Title */}
+        <Input
+          placeholder="Event Title"
+          value={eventData.title}
+          onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
+          className="text-sm"
+        />
+
+        {/* Committee */}
+        <select
+          value={eventData.committee}
+          onChange={(e) => setEventData({ ...eventData, committee: e.target.value })}
+          className="text-sm w-full border rounded p-2"
+        >
+          <option value="">Select Committee</option>
+          <option value="GDG">GDG</option>
+          <option value="CSI">CSI</option>
+        </select>
+
+        {/* Start & End Date */}
+        <div className="flex gap-2">
+          <Input
+            placeholder="Start Time"
+            type="datetime-local"
+            value={eventData.startTime}
+            onChange={(e) => setEventData({ ...eventData, startTime: e.target.value })}
+            className="text-sm flex-1"
+          />
+          <Input
+            placeholder="End Time"
+            type="datetime-local"
+            value={eventData.endTime}
+            onChange={(e) => setEventData({ ...eventData, endTime: e.target.value })}
+            className="text-sm flex-1"
+          />
         </div>
-      )}
+
+        {/* Location */}
+        <Input
+          placeholder="Location"
+          value={eventData.location}
+          onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
+          className="text-sm"
+        />
+
+        {/* Max Attendees */}
+        <Input
+          placeholder="Max Attendees"
+          type="number"
+          value={eventData.maxAttendees}
+          onChange={(e) => setEventData({ ...eventData, maxAttendees: e.target.value })}
+          className="text-sm"
+        />
+
+        {/* Categories */}
+        <Input
+          placeholder="Categories (comma separated)"
+          value={eventData.categories}
+          onChange={(e) => setEventData({ ...eventData, categories: e.target.value.split(",") })}
+          className="text-sm"
+        />
+
+        {/* Description */}
+        <Textarea
+          placeholder="Event Description"
+          value={eventData.description}
+          onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
+          className="text-sm"
+        />
+
+      </div>
+
+      {/* Buttons */}
+      <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-6">
+        <Button
+          variant="outline"
+          onClick={() => setShowCreateEventModal(false)}
+          className="text-xs sm:text-sm"
+        >
+          Cancel
+        </Button>
+        <Button
+          className="text-xs sm:text-sm"
+          onClick={createEvent} // pass function reference
+        >
+          Create Event
+        </Button>
+      </div>
+    </div>
+  </div>
+)}
+
 
       {/* Email Modal */}
       {showEmailModal && (

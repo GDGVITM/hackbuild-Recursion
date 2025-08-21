@@ -62,7 +62,7 @@ const PublicRoute = ({ children }) => {
   
   // Check if user is admin or organiser based on email
   const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
-  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'organiser@eventhub.com';
+  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'aravmahind05@gmail.com';
   
   return (
     <>
