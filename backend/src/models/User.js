@@ -3,10 +3,10 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true }, // bcrypt hashed
+  passwordHash: { type: String, required: true }, 
   role: { type: String, enum: ["admin", "organizer", "volunteer", "student"], default: "student" },
   phone: { type: String },
-  collegeId: { type: mongoose.Schema.Types.ObjectId, ref: "College" }, // optional for multi-college later
+  collegeId: { type: mongoose.Schema.Types.ObjectId, ref: "College" }, 
   createdAt: { type: Date, default: Date.now },
   notificationPreferences: {
     email: { type: Boolean, default: true },
@@ -15,13 +15,13 @@ const userSchema = new mongoose.Schema({
     browser: { type: Boolean, default: true }
   },
   // Clerk integration fields
-  clerkId: { type: String, unique: true, sparse: true }, // Clerk user ID
-  isClerkUser: { type: Boolean, default: false }, // Flag to identify Clerk users
+  clerkId: { type: String, unique: true, sparse: true }, 
+  isClerkUser: { type: Boolean, default: false }, 
 });
 
-// Index for faster queries
+
 userSchema.index({ email: 1 });
 userSchema.index({ clerkId: 1 });
 
-// Export as default
+
 export default mongoose.model("User", userSchema);
