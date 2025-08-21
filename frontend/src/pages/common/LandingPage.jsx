@@ -82,11 +82,19 @@ const LandingPage = () => {
         {/* Auth & User */}
         <div className="hidden lg:flex items-center space-x-6">
           <SignedOut>
-            <SignInButton mode="modal" afterSignInUrl={getRedirectUrl()}>
-              <Button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 rounded-xl shadow-lg">
-                Get Started <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </SignInButton>
+            <div className="flex items-center space-x-3">
+              <Link to="/auth/login">
+                <Button variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth/register">
+                <Button className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-xl flex items-center space-x-2 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+                  <span className="font-medium text-sm sm:text-base">Get Started</span>
+                  <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                </Button>
+              </Link>
+            </div>
           </SignedOut>
           <SignedIn>
             <div className="flex items-center space-x-3">
@@ -105,15 +113,93 @@ const LandingPage = () => {
           </SignedIn>
         </div>
 
-        {/* Mobile menu */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="lg:hidden"
-        >
-          {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-        </Button>
+        {/* Mobile Menu Button */}
+        <div className="lg:hidden flex items-center space-x-3">
+          <SignedOut>
+            <div className="flex items-center space-x-2">
+              <Link to="/auth/login">
+                <Button size="sm" variant="outline" className="border-gray-300 text-gray-700 hover:bg-gray-50 text-xs">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth/register">
+                <Button size="sm" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-3 py-1.5 rounded-lg text-xs">
+                  Get Started
+                </Button>
+              </Link>
+            </div>
+          </SignedOut>
+          
+          <SignedIn>
+            <UserButton 
+              appearance={{
+                elements: {
+                  avatarBox: "w-8 h-8",
+                  userButtonPopoverCard: "shadow-xl border border-gray-200",
+                  userButtonPopoverActionButton: "hover:bg-gray-50"
+                }
+              }}
+            />
+          </SignedIn>
+          
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="lg:hidden"
+          >
+            {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+          </Button>
+        </div>
+
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="absolute top-full left-0 right-0 bg-white border-b border-gray-200 shadow-lg lg:hidden z-50">
+            <nav className="px-4 py-4 space-y-3">
+              <Link 
+                to="/events" 
+                className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>Events</span>
+              </Link>
+              <Link 
+                to={getRedirectUrl()} 
+                className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>
+                  {isAdmin ? 'Admin Dashboard' : 
+                   isOrganiser ? 'Organiser Dashboard' : 
+                   'Dashboard'}
+                </span>
+              </Link>
+              <Link 
+                to="/stats" 
+                className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <BarChart3 className="w-4 h-4" />
+                <span>Stats</span>
+              </Link>
+              
+              <SignedIn>
+                <div className="pt-3 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-900 mb-2">
+                    {user?.firstName || user?.fullName || 'User'}
+                  </p>
+                  {(isAdmin || isOrganiser) && (
+                    <Badge className={`${getRoleBadgeColor()} text-xs`}>
+                      {getUserRole()}
+                    </Badge>
+                  )}
+                </div>
+              </SignedIn>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Hero */}

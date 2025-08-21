@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,12 +17,21 @@ import {
   Menu,
   X
 } from 'lucide-react';
-import { UserButton } from '@clerk/clerk-react';
+import { UserButton, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user: authUser } = useAuth();
+  const { user: clerkUser } = useUser();
 
+  // Get the actual user data (from auth context or clerk)
+  const user = authUser || clerkUser;
+  const userName = user?.name || user?.firstName || user?.fullName || 'User';
+  const userRole = user?.role || 'Student';
+
+  // Real user data - you can replace these with actual API calls
   const upcomingEvents = [
     {
       id: 1,
@@ -90,6 +99,27 @@ const Dashboard = () => {
     }
   ];
 
+  // Get user stats
+  const userStats = {
+    totalEvents: upcomingEvents.length + recentActivity.length,
+    upcomingEvents: upcomingEvents.length,
+    notifications: 3
+  };
+
+  // Get role badge color
+  const getRoleBadgeColor = () => {
+    switch (userRole.toLowerCase()) {
+      case 'admin':
+        return 'bg-purple-100 text-purple-700';
+      case 'organizer':
+        return 'bg-orange-100 text-orange-700';
+      case 'volunteer':
+        return 'bg-green-100 text-green-700';
+      default:
+        return 'bg-blue-100 text-blue-700';
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation Bar */}
@@ -152,7 +182,10 @@ const Dashboard = () => {
                   }}
                 />
                 <div className="hidden md:block">
-                  <p className="text-sm font-medium text-gray-900">Alex Johnson</p>
+                  <p className="text-sm font-medium text-gray-900">{userName}</p>
+                  <Badge className={`${getRoleBadgeColor()} text-xs mt-1`}>
+                    {userRole}
+                  </Badge>
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-400" />
               </div>
@@ -186,9 +219,9 @@ const Dashboard = () => {
               </a>
               <div className="pt-2 border-t border-gray-200">
                 <span className="text-sm text-gray-600">Logged in as:</span>
-                <Badge className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full flex items-center space-x-1 mt-1">
+                <Badge className={`${getRoleBadgeColor()} px-3 py-1 rounded-full flex items-center space-x-1 mt-1`}>
                   <GraduationCap className="w-3 h-3" />
-                  <span>Student</span>
+                  <span>{userRole}</span>
                 </Badge>
               </div>
             </nav>
@@ -205,17 +238,17 @@ const Dashboard = () => {
               <div className="flex items-center space-x-3">
                 <span className="text-2xl sm:text-3xl">🎓</span>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome back, Alex!</h2>
-                  <p className="text-sm sm:text-base text-gray-600">You have 2 upcoming events and 3 new notifications.</p>
+                  <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Welcome back, {userName}!</h2>
+                  <p className="text-sm sm:text-base text-gray-600">You have {userStats.upcomingEvents} upcoming events and {userStats.notifications} new notifications.</p>
                 </div>
               </div>
               <div className="hidden md:flex space-x-8 text-center">
                 <div>
-                  <p className="text-3xl font-bold text-blue-600">5</p>
+                  <p className="text-3xl font-bold text-blue-600">{userStats.totalEvents}</p>
                   <p className="text-sm text-gray-600">Events Registered</p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-blue-600">2</p>
+                  <p className="text-3xl font-bold text-blue-600">{userStats.upcomingEvents}</p>
                   <p className="text-sm text-gray-600">Upcoming</p>
                 </div>
               </div>
