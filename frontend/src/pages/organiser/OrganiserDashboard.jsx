@@ -47,11 +47,20 @@ import {
 } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 
+
 const OrganiserDashboard = () => {
   const [committees, setCommittees] = useState([
   { _id: "gdg", name: "GDG" },
   { _id: "csi", name: "CSI" }
 ]);
+
+const CATEGORY_TYPES = [
+  "Technology",
+  "Business",
+  "Education",
+  "Health & Wellness",
+  "Other"
+];
 
   const [eventData, setEventData] = useState({
     title: "",
@@ -81,15 +90,48 @@ const OrganiserDashboard = () => {
 
   // createEvent function
   const createEvent = async () => {
-    try {
-      console.log("API Calling");
-      await axios.post("http://localhost:5000/api/events", eventData);
-      console.log("API Called Successfully");
-      // close modal or refresh list
-    } catch (err) {
-      console.error(err);
+  try {
+    const formData = new FormData();
+
+    // Basic fields
+    formData.append("title", eventData.title);
+    formData.append("description", eventData.description);
+    formData.append("committee", eventData.committee);
+    formData.append("startTime", eventData.startTime);
+    formData.append("endTime", eventData.endTime);
+    formData.append("location", eventData.location);
+    formData.append("maxAttendees", eventData.maxAttendees);
+    formData.append("price", eventData.price || 0);
+
+    // Categories (as JSON string)
+    formData.append("categories", JSON.stringify(eventData.categories));
+
+    // Tracks (as JSON string)
+    formData.append("tracks", JSON.stringify(eventData.tracks));
+
+    // Integrations (if any)
+    formData.append("integrations", JSON.stringify(eventData.integrations || {}));
+
+    // Image file (if uploaded)
+    if (eventData.imageFile) {
+      formData.append("image", eventData.imageFile);
     }
-  };
+
+    // Call backend
+    const res = await axios.post("http://localhost:5000/events", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    console.log("Event created successfully:", res.data);
+    // Close modal or refresh event list here
+
+  } catch (err) {
+    console.error("Failed to create event:", err);
+  }
+};
+
 
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
@@ -556,7 +598,7 @@ const OrganiserDashboard = () => {
 {/* Create Event Modal */}
 {showCreateEventModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-2xl mx-auto">
+    <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-3xl mx-auto overflow-y-auto max-h-[90vh]">
       <h3 className="text-lg font-semibold mb-4">Create New Event</h3>
 
       <div className="space-y-3 sm:space-y-4">
@@ -614,11 +656,40 @@ const OrganiserDashboard = () => {
           className="text-sm"
         />
 
-        {/* Categories */}
+        {/* Categories (Checkboxes for predefined options) */}
+        <div className="flex flex-wrap gap-2">
+          <span className="font-semibold text-sm w-full">Categories:</span>
+          {CATEGORY_TYPES.map((cat) => (
+            <label key={cat} className="flex items-center gap-1 text-sm border rounded p-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={eventData.categories.includes(cat)}
+                onChange={(e) => {
+                  let newCategories = [...eventData.categories];
+                  if (e.target.checked) newCategories.push(cat);
+                  else newCategories = newCategories.filter((c) => c !== cat);
+                  setEventData({ ...eventData, categories: newCategories });
+                }}
+              />
+              {cat}
+            </label>
+          ))}
+        </div>
+
+        {/* Price */}
         <Input
-          placeholder="Categories (comma separated)"
-          value={eventData.categories}
-          onChange={(e) => setEventData({ ...eventData, categories: e.target.value.split(",") })}
+          placeholder="Event Price (0 = Free)"
+          type="number"
+          value={eventData.price}
+          onChange={(e) => setEventData({ ...eventData, price: e.target.value })}
+          className="text-sm"
+        />
+
+        {/* Image */}
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={(e) => setEventData({ ...eventData, imageFile: e.target.files[0] })}
           className="text-sm"
         />
 
@@ -630,6 +701,116 @@ const OrganiserDashboard = () => {
           className="text-sm"
         />
 
+        {/* Tracks */}
+        <div className="space-y-2">
+          <h4 className="font-semibold">Tracks</h4>
+          {eventData.tracks.map((track, idx) => (
+            <div key={idx} className="flex flex-col sm:flex-row gap-2 border rounded p-2">
+              <Input
+                placeholder="Track Name"
+                value={track.name}
+                onChange={(e) => {
+                  const newTracks = [...eventData.tracks];
+                  newTracks[idx].name = e.target.value;
+                  setEventData({ ...eventData, tracks: newTracks });
+                }}
+                className="text-sm flex-1"
+              />
+              <Input
+                placeholder="Track Start Time"
+                type="datetime-local"
+                value={track.startTime}
+                onChange={(e) => {
+                  const newTracks = [...eventData.tracks];
+                  newTracks[idx].startTime = e.target.value;
+                  setEventData({ ...eventData, tracks: newTracks });
+                }}
+                className="text-sm flex-1"
+              />
+              <Input
+                placeholder="Track End Time"
+                type="datetime-local"
+                value={track.endTime}
+                onChange={(e) => {
+                  const newTracks = [...eventData.tracks];
+                  newTracks[idx].endTime = e.target.value;
+                  setEventData({ ...eventData, tracks: newTracks });
+                }}
+                className="text-sm flex-1"
+              />
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const newTracks = eventData.tracks.filter((_, i) => i !== idx);
+                  setEventData({ ...eventData, tracks: newTracks });
+                }}
+              >
+                Remove
+              </Button>
+            </div>
+          ))}
+          <Button
+            variant="outline"
+            onClick={() =>
+              setEventData({
+                ...eventData,
+                tracks: [...eventData.tracks, { name: "", startTime: "", endTime: "", location: "", maxAttendees: "" }]
+              })
+            }
+          >
+            Add Track
+          </Button>
+        </div>
+
+        {/* Integrations */}
+        <Input
+          placeholder="Google Calendar ID"
+          value={eventData.integrations?.googleCalendarId || ""}
+          onChange={(e) => setEventData({ ...eventData, integrations: { ...eventData.integrations, googleCalendarId: e.target.value } })}
+          className="text-sm"
+        />
+        {eventData.integrations?.externalApis?.map((api, idx) => (
+          <div key={idx} className="flex gap-2">
+            <Input
+              placeholder="API Name"
+              value={api.name}
+              onChange={(e) => {
+                const newApis = [...eventData.integrations.externalApis];
+                newApis[idx].name = e.target.value;
+                setEventData({ ...eventData, integrations: { ...eventData.integrations, externalApis: newApis } });
+              }}
+              className="text-sm flex-1"
+            />
+            <Input
+              placeholder="Endpoint"
+              value={api.endpoint}
+              onChange={(e) => {
+                const newApis = [...eventData.integrations.externalApis];
+                newApis[idx].endpoint = e.target.value;
+                setEventData({ ...eventData, integrations: { ...eventData.integrations, externalApis: newApis } });
+              }}
+              className="text-sm flex-1"
+            />
+            <Button
+              variant="outline"
+              onClick={() => {
+                const newApis = eventData.integrations.externalApis.filter((_, i) => i !== idx);
+                setEventData({ ...eventData, integrations: { ...eventData.integrations, externalApis: newApis } });
+              }}
+            >
+              Remove
+            </Button>
+          </div>
+        ))}
+        <Button
+          variant="outline"
+          onClick={() => {
+            const apis = eventData.integrations?.externalApis || [];
+            setEventData({ ...eventData, integrations: { ...eventData.integrations, externalApis: [...apis, { name: "", endpoint: "" }] } });
+          }}
+        >
+          Add API
+        </Button>
       </div>
 
       {/* Buttons */}
@@ -643,7 +824,7 @@ const OrganiserDashboard = () => {
         </Button>
         <Button
           className="text-xs sm:text-sm"
-          onClick={createEvent} // pass function reference
+          onClick={createEvent}
         >
           Create Event
         </Button>
@@ -651,6 +832,7 @@ const OrganiserDashboard = () => {
     </div>
   </div>
 )}
+
 
 
       {/* Email Modal */}
