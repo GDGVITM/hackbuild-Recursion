@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
+import { Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title as ChartTitle,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import VenueForm from '@/components/venues/VenueForm';
-import { 
-  Calendar, 
-  Bell, 
-  QrCode, 
-  BookOpen, 
-  GraduationCap, 
-  ChevronDown, 
-  MapPin, 
+import {
+  Calendar,
+  Bell,
+  QrCode,
+  BookOpen,
+  GraduationCap,
+  ChevronDown,
+  MapPin,
   Clock,
   TrendingUp,
   HelpCircle,
@@ -35,13 +45,15 @@ import {
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useAuth } from '@/context/AuthContext';
 
+ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend);
+
 const AdminDashboard = () => {
   const { user: clerkUser } = useUser();
   const { user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
+
   // State for real data
   const [stats, setStats] = useState([]);
   const [events, setEvents] = useState([]);
@@ -80,21 +92,21 @@ const AdminDashboard = () => {
     try {
       console.log('Fetching user stats...');
       const response = await fetch('http://localhost:5000/api/users/stats');
-      
+
       if (response.ok) {
         const data = await response.json();
         console.log('User stats response:', data);
-        
+
         if (data.success && data.stats) {
-           // Update the Total Users count in stats
-           setStats(prevStats => 
-             prevStats.map(stat => 
-               stat.title === 'Total Users' 
-                 ? { ...stat, count: data.stats.totalUsers }
-                 : stat
-             )
-           );
-           console.log('Updated stats with user count:', data.stats.totalUsers);
+          // Update the Total Users count in stats
+          setStats(prevStats =>
+            prevStats.map(stat =>
+              stat.title === 'Total Users'
+                ? { ...stat, count: data.stats.totalUsers }
+                : stat
+            )
+          );
+          console.log('Updated stats with user count:', data.stats.totalUsers);
         } else {
           console.error('Invalid stats response format:', data);
         }
@@ -106,21 +118,9 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fetch dashboard stats
+  // Fetch dashboard stats (admin)
   const fetchDashboardStats = async () => {
     try {
-      // For now, use mock data to avoid 403 errors
-      // TODO: Re-enable when admin authentication is working
-      const mockStats = [
-        { title: 'Total Events', count: events.length, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-        { title: 'Approved Events', count: events.filter(e => e.status === 'Approved').length, icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' },
-        { title: 'Pending Requests', count: events.filter(e => e.status === 'Pending').length, icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50' },
-        { title: 'Total Users', count: users.length, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' }
-      ];
-      setStats(mockStats);
-      
-      // TODO: Re-enable this when admin auth is working
-      /*
       const response = await fetch('http://localhost:5000/api/admin/dashboard/stats', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -135,26 +135,54 @@ const AdminDashboard = () => {
           { title: 'Total Users', count: data.stats.totalUsers, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' }
         ];
         setStats(statsData);
+      } else if (response.status === 403) {
+        const [eventsRes, usersRes] = await Promise.all([
+          fetch('http://localhost:5000/api/events'),
+          fetch('http://localhost:5000/api/users')
+        ]);
+        const eventsData = eventsRes.ok ? await eventsRes.json() : [];
+        const usersData = usersRes.ok ? await usersRes.json() : { success: false };
+        const usersArray = usersData && usersData.success ? usersData.users : [];
+        const statsData = [
+          { title: 'Total Events', count: Array.isArray(eventsData) ? eventsData.length : 0, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+          { title: 'Approved Events', count: Array.isArray(eventsData) ? eventsData.filter(e => e.status === 'Approved').length : 0, icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' },
+          { title: 'Pending Requests', count: Array.isArray(eventsData) ? eventsData.filter(e => e.status === 'Pending').length : 0, icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+          { title: 'Total Users', count: Array.isArray(usersArray) ? usersArray.length : 0, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' }
+        ];
+        setStats(statsData);
+      } else {
+        console.error('Failed to fetch dashboard stats:', response.status);
       }
-      */
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
     }
   };
 
-  // Fetch events
+  // Fetch events (admin with filters)
   const fetchEvents = async () => {
     try {
       const params = new URLSearchParams();
       if (statusFilter !== 'all') params.append('status', statusFilter);
       if (searchTerm) params.append('search', searchTerm);
-      
-      // Use the regular events endpoint like LandingPage
-      const response = await fetch(`http://localhost:5000/api/events?${params}`);
+
+      const response = await fetch(`http://localhost:5000/api/admin/events?${params}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
-        // Events are returned directly as an array
-        setEvents(Array.isArray(data) ? data : []);
+        setEvents(Array.isArray(data.events) ? data.events : []);
+      } else if (response.status === 403) {
+        const fallbackRes = await fetch(`http://localhost:5000/api/events?${params}`);
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          setEvents(Array.isArray(fallbackData) ? fallbackData : []);
+        } else {
+          console.error('Failed to fetch events (public):', fallbackRes.status);
+        }
+      } else {
+        console.error('Failed to fetch events:', response.status);
       }
     } catch (error) {
       console.error('Error fetching events:', error);
@@ -172,28 +200,53 @@ const AdminDashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setPendingRequests(data.pendingEvents);
+      } else if (response.status === 403) {
+        const eventsRes = await fetch('http://localhost:5000/api/events');
+        if (eventsRes.ok) {
+          const eventsData = await eventsRes.json();
+          setPendingRequests(Array.isArray(eventsData) ? eventsData.filter(e => e.status === 'Pending') : []);
+        } else {
+          setPendingRequests([]);
+        }
       }
     } catch (error) {
       console.error('Error fetching pending approvals:', error);
     }
   };
 
-  // Fetch users
+  // Fetch users (admin)
   const fetchUsers = async () => {
     try {
       setUsersLoading(true);
-      console.log('Fetching users from /api/users...');
-      const response = await fetch('http://localhost:5000/api/users');
-      
+      console.log('Fetching users from /api/admin/users...');
+      const response = await fetch('http://localhost:5000/api/admin/users', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
       if (response.ok) {
         const data = await response.json();
         console.log('Users API response:', data);
-        
+
         if (data.success && data.users) {
           setUsers(data.users);
           console.log('Users fetched successfully:', data.users.length);
         } else {
           console.error('Invalid response format:', data);
+          setUsers([]);
+        }
+      } else if (response.status === 403) {
+        const fallbackRes = await fetch('http://localhost:5000/api/users');
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success && Array.isArray(fallbackData.users)) {
+            setUsers(fallbackData.users);
+          } else {
+            setUsers([]);
+          }
+        } else {
+          console.error('Failed to fetch users (public):', fallbackRes.status, fallbackRes.statusText);
           setUsers([]);
         }
       } else {
@@ -210,15 +263,35 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fetch venues
+  // Fetch venues (admin)
   const fetchVenues = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/venues');
+      const response = await fetch('http://localhost:5000/api/admin/venues', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setVenues(Object.values(data.venues).flat());
+          setVenues(Array.isArray(data.venues) ? data.venues : []);
+        } else {
+          setVenues([]);
         }
+      } else if (response.status === 403) {
+        const fallbackRes = await fetch('http://localhost:5000/api/venues');
+        if (fallbackRes.ok) {
+          const fallbackData = await fallbackRes.json();
+          if (fallbackData.success) {
+            setVenues(Object.values(fallbackData.venues || {}).flat());
+          } else {
+            setVenues([]);
+          }
+        } else {
+          console.error('Failed to fetch venues (public):', fallbackRes.status);
+        }
+      } else {
+        console.error('Failed to fetch venues:', response.status);
       }
     } catch (error) {
       console.error('Error fetching venues:', error);
@@ -274,23 +347,11 @@ const AdminDashboard = () => {
     }
   };
 
-  // Fetch recent activity
+  // (Reverted) Removed user assignment modal helpers
+
+  // Fetch recent activity (admin)
   const fetchRecentActivity = async () => {
     try {
-      // For now, use mock data to avoid 403 errors
-      // TODO: Re-enable when admin authentication is working
-      const mockLogs = [
-        {
-          user: { name: 'System' },
-          action: 'Dashboard loaded',
-          target: 'Admin Panel',
-          timestamp: new Date()
-        }
-      ];
-      setLogs(mockLogs);
-      
-      // TODO: Re-enable this when admin auth is working
-      /*
       const response = await fetch('http://localhost:5000/api/admin/dashboard/recent-activity', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -298,9 +359,12 @@ const AdminDashboard = () => {
       });
       if (response.ok) {
         const data = await response.json();
-        setLogs(data.recentActivity);
+        setLogs(Array.isArray(data.recentActivity) ? data.recentActivity : []);
+      } else if (response.status === 403) {
+        setLogs([]);
+      } else {
+        console.error('Failed to fetch recent activity:', response.status);
       }
-      */
     } catch (error) {
       console.error('Error fetching recent activity:', error);
     }
@@ -317,7 +381,7 @@ const AdminDashboard = () => {
         },
         body: JSON.stringify({ status, rejectionReason })
       });
-      
+
       if (response.ok) {
         // Refresh the data
         fetchPendingApprovals();
@@ -344,18 +408,18 @@ const AdminDashboard = () => {
           },
           body: JSON.stringify({ role: 'organizer' })
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log('Role update response:', data);
-          
+
           if (data.success) {
             // Update local state
-            setUsers(users.map(user => 
+            setUsers(users.map(user =>
               user._id === userId ? { ...user, role: 'organizer' } : user
             ));
             alert(`${userName} is now an organizer!`);
-            
+
             // Refresh user stats
             fetchUserStats();
           } else {
@@ -383,16 +447,16 @@ const AdminDashboard = () => {
             'Content-Type': 'application/json',
           }
         });
-        
+
         if (response.ok) {
           const data = await response.json();
           console.log('User deactivation response:', data);
-          
+
           if (data.success) {
             // Remove from local state
             setUsers(users.filter(user => user._id !== userId));
             alert('User removed successfully!');
-            
+
             // Refresh user stats
             fetchUserStats();
           } else {
@@ -476,6 +540,83 @@ const AdminDashboard = () => {
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  // ===== Analytics helpers =====
+  const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+  const buildEventsByStatus = (eventsList) => {
+    const statuses = ["Approved","Pending","Rejected","Completed","Cancelled"];
+    const counts = statuses.map(s => ({ label: s, value: eventsList.filter(e => e.status === s).length }));
+    return counts;
+  };
+
+  const buildMonthlyCounts = (items, dateField, monthsBack = 12) => {
+    const now = new Date();
+    const buckets = [];
+    for (let i = monthsBack - 1; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      buckets.push({ key: `${d.getFullYear()}-${d.getMonth()}`, label: `${monthLabels[d.getMonth()]} ${String(d.getFullYear()).slice(-2)}`, value: 0 });
+    }
+    const bucketMap = new Map(buckets.map(b => [b.key, b]));
+    items.forEach(item => {
+      const dt = item?.[dateField] ? new Date(item[dateField]) : null;
+      if (!dt || Number.isNaN(dt.getTime())) return;
+      const key = `${dt.getFullYear()}-${dt.getMonth()}`;
+      if (bucketMap.has(key)) {
+        bucketMap.get(key).value += 1;
+      }
+    });
+    return buckets;
+  };
+
+  const ChartContainer = ({ title, data, color, height = 300 }) => {
+    const labels = data.map(d => d.label);
+    const values = data.map(d => d.value);
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: title,
+          data: values,
+          backgroundColor: color,
+          borderRadius: 6
+        }
+      ]
+    };
+    const options = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        title: { display: false },
+        tooltip: { mode: 'index', intersect: false }
+      },
+      scales: {
+        x: { grid: { display: false } },
+        y: { beginAtZero: true, grid: { color: '#eef2ff' } }
+      }
+    };
+    return (
+      <div className="w-full" style={{ height }}>
+        <Bar data={chartData} options={options} />
+      </div>
+    );
+  };
+
+  const navItems = [
+    { label: 'Dashboard', value: 'overview', icon: BarChart3 },
+    { label: 'Events', value: 'events', icon: Calendar },
+    { label: 'Approvals', value: 'approvals', icon: CheckCircle },
+    { label: 'Users', value: 'users', icon: Users },
+    { label: 'Venues', value: 'venues', icon: Building2 },
+    { label: 'Logs', value: 'logs', icon: FileText },
+    { label: 'Analytics', value: 'analytics', icon: TrendingUp }
+  ];
+
+  const handleNavClick = (tabValue) => {
+    setActiveTab(tabValue);
+    setMobileMenuOpen(false);
   };
 
   if (loading) {
@@ -635,13 +776,13 @@ const AdminDashboard = () => {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                     <CardTitle className="text-lg sm:text-xl">Events Management</CardTitle>
                     <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                      <Input 
-                        placeholder="Search events..." 
+                      <Input
+                        placeholder="Search events..."
                         className="w-full sm:w-64 text-sm"
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                       />
-                      <select 
+                      <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -694,15 +835,15 @@ const AdminDashboard = () => {
                                 </Button>
                                 {event.status === 'Pending' && (
                                   <>
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       className="bg-green-600 hover:bg-green-700 text-xs"
                                       onClick={() => handleEventStatusUpdate(event._id, 'Approved')}
                                     >
                                       <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </Button>
-                                    <Button 
-                                      size="sm" 
+                                    <Button
+                                      size="sm"
                                       className="bg-red-600 hover:bg-red-700 text-xs"
                                       onClick={() => handleEventStatusUpdate(event._id, 'Rejected')}
                                     >
@@ -744,20 +885,20 @@ const AdminDashboard = () => {
                                 Date: {formatDate(request.startTime)}
                               </p>
                               <p className="text-xs sm:text-sm text-gray-600">
-                                Venue: {request.venue?.name || request.location || 'N/A'} 
+                                Venue: {request.venue?.name || request.location || 'N/A'}
                                 {request.maxAttendees && ` (Capacity: ${request.maxAttendees})`}
                               </p>
                             </div>
                             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                              <Button 
+                              <Button
                                 className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
                                 onClick={() => handleEventStatusUpdate(request._id, 'Approved')}
                               >
                                 <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                                 Approve
                               </Button>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 className="border-red-200 text-red-700 hover:bg-red-50 text-xs sm:text-sm"
                                 onClick={() => handleEventStatusUpdate(request._id, 'Rejected')}
                               >
@@ -780,8 +921,8 @@ const AdminDashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                     <CardTitle className="text-lg sm:text-xl">Users & Organisers</CardTitle>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       variant="outline"
                       onClick={fetchUsers}
                       disabled={usersLoading}
@@ -798,11 +939,12 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <Tabs defaultValue="users" className="w-full">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-3">
                       <TabsTrigger value="users" className="text-xs sm:text-sm">Users</TabsTrigger>
+                      <TabsTrigger value="volunteers" className="text-xs sm:text-sm">Volunteers</TabsTrigger>
                       <TabsTrigger value="organisers" className="text-xs sm:text-sm">Organisers</TabsTrigger>
                     </TabsList>
-                    
+
                     <TabsContent value="users" className="space-y-3 sm:space-y-4">
                       {usersLoading ? (
                         <div className="text-center py-8">
@@ -812,9 +954,9 @@ const AdminDashboard = () => {
                       ) : users.length === 0 ? (
                         <div className="text-center py-8">
                           <p className="text-gray-500">No users found</p>
-                          <Button 
-                            size="sm" 
-                            variant="outline" 
+                          <Button
+                            size="sm"
+                            variant="outline"
                             onClick={fetchUsers}
                             className="mt-2"
                           >
@@ -847,9 +989,9 @@ const AdminDashboard = () => {
                                   <td className="py-3 px-2 sm:px-4">
                                     <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
                                       {user.role !== 'organizer' && (
-                                        <Button 
-                                          size="sm" 
-                                          variant="outline" 
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
                                           className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
                                           onClick={() => handleMakeOrganizer(user._id, user.name)}
                                         >
@@ -869,6 +1011,31 @@ const AdminDashboard = () => {
                           </table>
                         </div>
                       )}
+                    </TabsContent>
+
+                    <TabsContent value="volunteers" className="space-y-3 sm:space-y-4">
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead>
+                            <tr className="border-b border-gray-200">
+                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Name</th>
+                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Email</th>
+                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Role</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {users.filter(u => u.role === 'volunteer').map((user) => (
+                              <tr key={user._id} className="border-b border-gray-100">
+                                <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{user.name}</td>
+                                <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{user.email}</td>
+                                <td className="py-3 px-2 sm:px-4">
+                                  <Badge className="bg-green-100 text-green-700 text-xs capitalize">{user.role}</Badge>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
                     </TabsContent>
 
                     <TabsContent value="organisers" className="space-y-3 sm:space-y-4">
@@ -926,8 +1093,8 @@ const AdminDashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                     <CardTitle className="text-lg sm:text-xl">Venue Management</CardTitle>
-                    <Button 
-                      size="sm" 
+                    <Button
+                      size="sm"
                       className="text-xs sm:text-sm"
                       onClick={() => {
                         setSelectedVenue(null);
@@ -977,17 +1144,17 @@ const AdminDashboard = () => {
                             </td>
                             <td className="py-3 px-2 sm:px-4">
                               <div className="flex space-x-2">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   className="text-xs"
                                   onClick={() => handleEditVenue(venue)}
                                 >
                                   Edit
                                 </Button>
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
+                                <Button
+                                  size="sm"
+                                  variant="outline"
                                   className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
                                   onClick={() => handleDeleteVenue(venue._id)}
                                 >
@@ -1052,12 +1219,8 @@ const AdminDashboard = () => {
                     <CardTitle className="text-lg sm:text-xl">Events by Status</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-48 sm:h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                      <div className="text-center">
-                        <BarChart3 className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500 text-sm sm:text-base">Chart will be displayed here</p>
-                        <p className="text-xs sm:text-sm text-gray-400">Using Recharts or Chart.js</p>
-                      </div>
+                    <div className="h-72 sm:h-80 flex items-center justify-center bg-gray-50 rounded-lg p-3">
+                      <ChartContainer title="Events by Status" data={buildEventsByStatus(events)} color="#3b82f6" height={320} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1067,12 +1230,8 @@ const AdminDashboard = () => {
                     <CardTitle className="text-lg sm:text-xl">User Growth</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="h-48 sm:h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                      <div className="text-center">
-                        <TrendingUp className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2" />
-                        <p className="text-gray-500 text-sm sm:text-base">Chart will be displayed here</p>
-                        <p className="text-xs sm:text-sm text-gray-400">Using Recharts or Chart.js</p>
-                      </div>
+                    <div className="h-72 sm:h-80 flex items-center justify-center bg-gray-50 rounded-lg p-3">
+                      <ChartContainer title="User Growth" data={buildMonthlyCounts(users, 'createdAt', 12)} color="#10b981" height={320} />
                     </div>
                   </CardContent>
                 </Card>
@@ -1083,12 +1242,8 @@ const AdminDashboard = () => {
                   <CardTitle className="text-lg sm:text-xl">Monthly Events Overview</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="h-48 sm:h-64 flex items-center justify-center bg-gray-50 rounded-lg">
-                    <div className="text-center">
-                      <Calendar className="w-12 h-12 sm:w-16 sm:h-16 text-gray-400 mx-auto mb-2" />
-                      <p className="text-gray-500 text-sm sm:text-base">Bar chart will be displayed here</p>
-                      <p className="text-xs sm:text-sm text-gray-400">Events count by month</p>
-                    </div>
+                  <div className="h-80 sm:h-96 flex items-center justify-center bg-gray-50 rounded-lg p-3">
+                    <ChartContainer title="Monthly Events" data={buildMonthlyCounts(events, 'createdAt', 12)} color="#f59e0b" height={360} />
                   </div>
                 </CardContent>
               </Card>
@@ -1107,6 +1262,7 @@ const AdminDashboard = () => {
           <HelpCircle className="w-6 h-6 text-white" />
         </Button>
       </div>
+      {/* (Reverted) User assignment modal removed */}
     </div>
   );
 };
