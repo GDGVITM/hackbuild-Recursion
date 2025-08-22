@@ -55,6 +55,21 @@ const AdminDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [usersLoading, setUsersLoading] = useState(false);
+
+  const handleNavClick = (value) => {
+    setActiveTab(value);
+    setMobileMenuOpen(false); // Close mobile menu when nav item is clicked
+  };
+
+  const navItems = [
+    { icon: BarChart3, label: 'Dashboard', value: 'overview' },
+    { icon: Calendar, label: 'Events', value: 'events' },
+    { icon: Clock, label: 'Approvals', value: 'approvals' },
+    { icon: Users, label: 'Users', value: 'users' },
+    { icon: Building2, label: 'Venues', value: 'venues' },
+    { icon: FileText, label: 'Logs', value: 'logs' },
+    { icon: TrendingUp, label: 'Analytics', value: 'analytics' }
+  ];
   
   // Get the actual user data
   const user = authUser || clerkUser;
