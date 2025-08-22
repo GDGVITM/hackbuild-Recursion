@@ -210,3 +210,30 @@ export const getUserStats = async (req, res) => {
     });
   }
 };
+
+// Get user role by Clerk ID
+export const getUserRoleByClerkId = async (req, res) => {
+  try {
+    const { clerkId } = req.params;
+    
+    const user = await User.findOne({ clerkId }).select('role');
+    
+    if (!user) {
+      return res.status(404).json({ 
+        success: false,
+        error: "User not found" 
+      });
+    }
+    
+    res.json({
+      success: true,
+      role: user.role
+    });
+  } catch (error) {
+    console.error("Error fetching user role:", error);
+    res.status(500).json({ 
+      success: false,
+      error: "Failed to fetch user role" 
+    });
+  }
+};

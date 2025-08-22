@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import axios from 'axios';
-
+ 
 import { 
   Calendar, 
   Bell, 
@@ -46,14 +46,14 @@ import {
   X
 } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
-
-
+ 
+ 
 const OrganiserDashboard = () => {
   const [committees, setCommittees] = useState([
   { _id: "gdg", name: "GDG" },
   { _id: "csi", name: "CSI" }
 ]);
-
+ 
 const CATEGORY_TYPES = [
   "Technology",
   "Business",
@@ -61,7 +61,7 @@ const CATEGORY_TYPES = [
   "Health & Wellness",
   "Other"
 ];
-
+ 
   const [eventData, setEventData] = useState({
     title: "",
     committee: "",
@@ -73,7 +73,7 @@ const CATEGORY_TYPES = [
     description: "",
     tracks: [],
   });
-
+ 
   // Fetch committees from backend
   useEffect(() => {
     const fetchCommittees = async () => {
@@ -84,15 +84,15 @@ const CATEGORY_TYPES = [
         console.error("Failed to fetch committees:", err);
       }
     };
-
+ 
     fetchCommittees();
   }, []);
-
+ 
   // createEvent function
 const createEvent = async () => {
   try {
     const formData = new FormData();
-
+ 
     // Basic fields
     formData.append("title", eventData.title);
     formData.append("description", eventData.description);
@@ -102,36 +102,36 @@ const createEvent = async () => {
     formData.append("location", eventData.location);
     formData.append("maxAttendees", eventData.maxAttendees);
     formData.append("price", eventData.price || 0);
-
+ 
     // Categories (as JSON string)
     formData.append("categories", JSON.stringify(eventData.categories));
-
+ 
     // Tracks (as JSON string)
     formData.append("tracks", JSON.stringify(eventData.tracks));
-
+ 
     // Integrations (if any)
     formData.append("integrations", JSON.stringify(eventData.integrations || {}));
-
+ 
     // Image file (if uploaded)
     if (eventData.imageFile) {
       formData.append("image", eventData.imageFile);
     }
-
+ 
     // Call backend
     const res = await axios.post("http://localhost:5000/events", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
-
+ 
     // Show success acknowledgment
     alert(res.data.message || "Event created successfully!");
-
+ 
     console.log("Event created successfully:", res.data);
-
+ 
     // Close the modal
     setShowCreateEventModal(false);
-
+ 
     // Reset the form
     setEventData({
       title: "",
@@ -147,18 +147,18 @@ const createEvent = async () => {
       imageFile: null,
       integrations: {}
     });
-
+ 
     // // Optional: refresh the event list if you have a fetch function
     // fetchEvents();
-
+ 
   } catch (err) {
     console.error("Failed to create event:", err);
     alert("Failed to create event. Please try again.");
   }
 };
-
-
-
+ 
+ 
+ 
   const { user } = useUser();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -167,7 +167,7 @@ const createEvent = async () => {
   const [showEmailModal, setShowEmailModal] = useState(false);
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [showVolunteerModal, setShowVolunteerModal] = useState(false);
-
+ 
   // Mock data for demonstration
   const stats = [
     { title: 'Total Events', count: 24, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50' },
@@ -175,7 +175,7 @@ const createEvent = async () => {
     { title: 'Total Participants', count: 156, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' },
     { title: 'Volunteers', count: 12, icon: UserCheck, color: 'text-orange-600', bgColor: 'bg-orange-50' }
   ];
-
+ 
   const events = [
     {
       id: 1,
@@ -205,20 +205,20 @@ const createEvent = async () => {
       volunteers: 0
     }
   ];
-
+ 
   const volunteers = [
     { id: 1, name: 'Alex Johnson', email: 'alex@university.edu', role: 'Event Coordinator', events: 3 },
     { id: 2, name: 'Sarah Wilson', email: 'sarah@university.edu', role: 'Registration Helper', events: 2 },
     { id: 3, name: 'Mike Chen', email: 'mike@university.edu', role: 'Technical Support', events: 1 }
   ];
-
+ 
   const notifications = [
     { id: 1, title: 'Event Registration Open', message: 'Tech Summit registration is now open', sent: '2 hours ago', recipients: 156 },
     { id: 2, title: 'Volunteer Meeting', message: 'Reminder: Volunteer briefing tomorrow', sent: '1 day ago', recipients: 12 },
     { id: 3, title: 'Venue Confirmation', message: 'Engineering Auditorium confirmed for Tech Summit', sent: '3 days ago', recipients: 156 }
   ];
-  
-
+ 
+ 
   const getStatusColor = (status) => {
     switch (status) {
       case 'Active': return 'bg-green-100 text-green-700';
@@ -228,7 +228,7 @@ const createEvent = async () => {
       default: return 'bg-gray-100 text-gray-700';
     }
   };
-
+ 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
       {/* Sidebar */}
@@ -246,7 +246,7 @@ const createEvent = async () => {
             )}
           </div>
         </div>
-
+ 
         <nav className="p-4 space-y-2">
           {[
             { icon: BarChart3, label: 'Dashboard', value: 'overview' },
@@ -271,7 +271,7 @@ const createEvent = async () => {
           ))}
         </nav>
       </aside>
-
+ 
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
@@ -287,7 +287,7 @@ const createEvent = async () => {
               >
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
-
+ 
               {/* Desktop Sidebar Toggle */}
               <Button
                 variant="ghost"
@@ -297,12 +297,12 @@ const createEvent = async () => {
               >
                 <MoreHorizontal className="w-5 h-5" />
               </Button>
-
+ 
               <h2 className="text-lg sm:text-xl font-semibold text-gray-900 capitalize">
                 {activeTab === 'overview' ? 'Dashboard' : activeTab}
               </h2>
             </div>
-
+ 
             <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="hidden sm:flex items-center space-x-3">
                 <span className="text-sm text-gray-600">Logged in as:</span>
@@ -327,7 +327,7 @@ const createEvent = async () => {
               </div>
             </div>
           </div>
-
+ 
           {/* Mobile Navigation Menu */}
           {mobileMenuOpen && (
             <nav className="lg:hidden mt-4 pt-4 border-t border-gray-200 space-y-2">
@@ -358,7 +358,7 @@ const createEvent = async () => {
             </nav>
           )}
         </header>
-
+ 
         {/* Content */}
         <main className="flex-1 p-4 sm:p-6 overflow-auto">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
@@ -382,7 +382,7 @@ const createEvent = async () => {
                   </Card>
                 ))}
               </div>
-
+ 
               {/* Quick Actions */}
               <Card>
                 <CardHeader className="pb-3">
@@ -417,7 +417,7 @@ const createEvent = async () => {
                 </CardContent>
               </Card>
             </TabsContent>
-
+ 
             {/* Events Management */}
             <TabsContent value="events" className="space-y-4 sm:space-y-6">
               <Card>
@@ -476,7 +476,7 @@ const createEvent = async () => {
                 </CardContent>
               </Card>
             </TabsContent>
-
+ 
             {/* Volunteers Management */}
             <TabsContent value="volunteers" className="space-y-4 sm:space-y-6">
               <Card>
@@ -528,7 +528,7 @@ const createEvent = async () => {
                 </CardContent>
               </Card>
             </TabsContent>
-
+ 
             {/* Communications */}
             <TabsContent value="communications" className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -543,7 +543,7 @@ const createEvent = async () => {
                     </Button>
                   </CardContent>
                 </Card>
-
+ 
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg sm:text-xl">Push Notifications</CardTitle>
@@ -557,7 +557,7 @@ const createEvent = async () => {
                 </Card>
               </div>
             </TabsContent>
-
+ 
             {/* Notifications History */}
             <TabsContent value="notifications" className="space-y-4 sm:space-y-6">
               <Card>
@@ -582,7 +582,7 @@ const createEvent = async () => {
                 </CardContent>
               </Card>
             </TabsContent>
-
+ 
             {/* Analytics */}
             <TabsContent value="analytics" className="space-y-4 sm:space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -600,7 +600,7 @@ const createEvent = async () => {
                     </div>
                   </CardContent>
                 </Card>
-
+ 
                 <Card>
                   <CardHeader className="pb-3">
                     <CardTitle className="text-lg sm:text-xl">Volunteer Performance</CardTitle>
@@ -620,13 +620,13 @@ const createEvent = async () => {
           </Tabs>
         </main>
       </div>
-
+ 
 {/* Create Event Modal */}
 {showCreateEventModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
     <div className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-3xl mx-auto overflow-y-auto max-h-[90vh]">
       <h3 className="text-lg font-semibold mb-4">Create New Event</h3>
-
+ 
       <div className="space-y-3 sm:space-y-4">
         {/* Event Title */}
         <Input
@@ -635,7 +635,7 @@ const createEvent = async () => {
           onChange={(e) => setEventData({ ...eventData, title: e.target.value })}
           className="text-sm"
         />
-
+ 
         {/* Committee */}
         <select
           value={eventData.committee}
@@ -646,7 +646,7 @@ const createEvent = async () => {
           <option value="GDG">GDG</option>
           <option value="CSI">CSI</option>
         </select>
-
+ 
         {/* Start & End Date */}
         <div className="flex gap-2">
           <Input
@@ -664,7 +664,7 @@ const createEvent = async () => {
             className="text-sm flex-1"
           />
         </div>
-
+ 
         {/* Location */}
         <Input
           placeholder="Location"
@@ -672,7 +672,7 @@ const createEvent = async () => {
           onChange={(e) => setEventData({ ...eventData, location: e.target.value })}
           className="text-sm"
         />
-
+ 
         {/* Max Attendees */}
         <Input
           placeholder="Max Attendees"
@@ -681,7 +681,7 @@ const createEvent = async () => {
           onChange={(e) => setEventData({ ...eventData, maxAttendees: e.target.value })}
           className="text-sm"
         />
-
+ 
         {/* Categories (Checkboxes for predefined options) */}
         <div className="flex flex-wrap gap-2">
           <span className="font-semibold text-sm w-full">Categories:</span>
@@ -701,7 +701,7 @@ const createEvent = async () => {
             </label>
           ))}
         </div>
-
+ 
         {/* Price */}
         <Input
           placeholder="Event Price (0 = Free)"
@@ -710,7 +710,7 @@ const createEvent = async () => {
           onChange={(e) => setEventData({ ...eventData, price: e.target.value })}
           className="text-sm"
         />
-
+ 
         {/* Image */}
         <Input
           type="file"
@@ -718,7 +718,7 @@ const createEvent = async () => {
           onChange={(e) => setEventData({ ...eventData, imageFile: e.target.files[0] })}
           className="text-sm"
         />
-
+ 
         {/* Description */}
         <Textarea
           placeholder="Event Description"
@@ -726,7 +726,7 @@ const createEvent = async () => {
           onChange={(e) => setEventData({ ...eventData, description: e.target.value })}
           className="text-sm"
         />
-
+ 
         {/* Tracks */}
         <div className="space-y-2">
           <h4 className="font-semibold">Tracks</h4>
@@ -787,7 +787,7 @@ const createEvent = async () => {
             Add Track
           </Button>
         </div>
-
+ 
         {/* Integrations */}
         <Input
           placeholder="Google Calendar ID"
@@ -838,7 +838,7 @@ const createEvent = async () => {
           Add API
         </Button>
       </div>
-
+ 
       {/* Buttons */}
       <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2 mt-4 sm:mt-6">
         <Button
@@ -858,9 +858,9 @@ const createEvent = async () => {
     </div>
   </div>
 )}
-
-
-
+ 
+ 
+ 
       {/* Email Modal */}
       {showEmailModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -882,7 +882,7 @@ const createEvent = async () => {
           </div>
         </div>
       )}
-
+ 
       {/* Notification Modal */}
       {showNotificationModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -904,7 +904,7 @@ const createEvent = async () => {
           </div>
         </div>
       )}
-
+ 
       {/* Add Volunteer Modal */}
       {showVolunteerModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -927,7 +927,7 @@ const createEvent = async () => {
           </div>
         </div>
       )}
-
+ 
       {/* Help Button */}
       <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40">
         <Button
@@ -940,5 +940,5 @@ const createEvent = async () => {
     </div>
   );
 };
-
+ 
 export default OrganiserDashboard;

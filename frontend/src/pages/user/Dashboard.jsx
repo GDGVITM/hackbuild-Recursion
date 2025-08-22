@@ -14,17 +14,20 @@ import {
   TrendingUp,
   HelpCircle,
   Menu,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
-import { UserButton, useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
 import { useAuth } from '@/context/AuthContext';
 import { Link } from 'react-router-dom';
+import { useLogout } from '@/hooks/useLogout';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user: authUser } = useAuth();
   const { user: clerkUser } = useUser();
+  const { logout } = useLogout();
   const user = authUser || clerkUser;
   const userName = user?.name || user?.firstName || user?.fullName || 'User';
   const userRole = user?.role || 'Student';
@@ -107,15 +110,15 @@ const Dashboard = () => {
                 <div className="hidden md:block">
                   <p className="text-sm font-medium text-gray-900">{userName}</p>
                 </div>
-                <UserButton 
-                  appearance={{
-                    elements: {
-                      avatarBox: "w-8 h-8 sm:w-10 sm:h-10",
-                      userButtonPopoverCard: "shadow-xl border border-gray-200",
-                      userButtonPopoverActionButton: "hover:bg-gray-50"
-                    }
-                  }}
-                />
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={logout}
+                  className="w-8 h-8 sm:w-10 sm:h-10 text-gray-600 hover:text-red-600"
+                  title="Logout"
+                >
+                  <LogOut className="w-4 h-4 sm:w-5 sm:h-5" />
+                </Button>
               </div>
 
               {/* Mobile Menu Button */}

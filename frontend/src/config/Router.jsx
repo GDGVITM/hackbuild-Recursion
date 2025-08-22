@@ -1,6 +1,5 @@
-import React from 'react';
+import React, {useState, useEffect} from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
 import LandingPage from '../pages/common/LandingPage';
 import Dashboard from '../pages/user/Dashboard';
 import AdminDashboard from '../pages/admin/AdminDashboard';
@@ -20,70 +19,22 @@ import EventsList from '../pages/common/EventsList';
 
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
-  return (
-    <>
-      <SignedIn>
-        {children}
-      </SignedIn>
-      <SignedOut>
-        <Navigate to="/" replace />
-      </SignedOut>
-    </>
-  );
+  return children;
 };
 
 // Admin Route Component (only for admin users)
 const AdminRoute = ({ children }) => {
-  return (
-    <>
-      <SignedIn>
-        {children}
-      </SignedIn>
-      <SignedOut>
-        <Navigate to="/" replace />
-      </SignedOut>
-    </>
-  );
+  return children;
 };
 
 // Organiser Route Component (only for organiser users)
 const OrganiserRoute = ({ children }) => {
-  return (
-    <>
-      <SignedIn>
-        {children}
-      </SignedIn>
-      <SignedOut>
-        <Navigate to="/" replace />
-      </SignedOut>
-    </>
-  );
+  return children;
 };
 
 // Public Route Component (only for signed out users)
 const PublicRoute = ({ children }) => {
-  const { user } = useUser();
-  
-  // Check if user is admin or organiser based on email
-  const isAdmin = user?.primaryEmailAddress?.emailAddress === 'theeventhub2025@gmail.com';
-  const isOrganiser = user?.primaryEmailAddress?.emailAddress === 'aravmahind05@gmail.com';
-  
-  return (
-    <>
-      <SignedOut>
-        {children}
-      </SignedOut>
-      <SignedIn>
-        {isAdmin ? (
-          <Navigate to="/admin/dashboard" replace />
-        ) : isOrganiser ? (
-          <Navigate to="/organiser/dashboard" replace />
-        ) : (
-          <Navigate to="/user/dashboard" replace />
-        )}
-      </SignedIn>
-    </>
-  );
+  return children;
 };
 
 const AppRouter = () => {

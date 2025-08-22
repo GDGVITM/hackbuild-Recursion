@@ -39,7 +39,7 @@ const Login = () => {
     setError('');
 
     try {
-      // Pre-check if user exists, if not redirect to register and prefill email
+      // Pre-check if user exists and get their role from database
       const existsRes = await fetch(`http://localhost:5000/api/auth/check-user/${encodeURIComponent(formData.email)}`);
       const existsData = await existsRes.json();
       if (!existsData.exists) {
@@ -63,7 +63,7 @@ const Login = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
         
-        // Redirect based on role
+        // Redirect based on role from database
         const redirectUrl = getRedirectUrl(data.user.role);
         navigate(redirectUrl);
       } else {
@@ -213,7 +213,7 @@ const Login = () => {
               </div>
             </div>
 
-            <SignInButton mode="modal" afterSignInUrl="/user/dashboard">
+            <SignInButton mode="modal">
               <Button variant="outline" className="w-full">
                 <div className="flex items-center space-x-2">
                   <Mail className="w-4 h-4" />

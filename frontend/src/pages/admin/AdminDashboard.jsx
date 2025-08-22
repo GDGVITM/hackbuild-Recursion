@@ -40,16 +40,19 @@ import {
   UserMinus,
   Menu,
   X,
-  Loader2
+  Loader2,
+  LogOut
 } from 'lucide-react';
-import { UserButton, useUser } from '@clerk/clerk-react';
+import { useUser, UserButton } from '@clerk/clerk-react';
 import { useAuth } from '@/context/AuthContext';
+import { useLogout } from '@/hooks/useLogout';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, ChartTitle, Tooltip, Legend);
 
 const AdminDashboard = () => {
   const { user: clerkUser } = useUser();
   const { user: authUser } = useAuth();
+  const { logout } = useLogout();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -604,20 +607,9 @@ const AdminDashboard = () => {
     );
   };
 
-  const navItems = [
-    { label: 'Dashboard', value: 'overview', icon: BarChart3 },
-    { label: 'Events', value: 'events', icon: Calendar },
-    { label: 'Approvals', value: 'approvals', icon: CheckCircle },
-    { label: 'Users', value: 'users', icon: Users },
-    { label: 'Venues', value: 'venues', icon: Building2 },
-    { label: 'Logs', value: 'logs', icon: FileText },
-    { label: 'Analytics', value: 'analytics', icon: TrendingUp }
-  ];
+ 
 
-  const handleNavClick = (tabValue) => {
-    setActiveTab(tabValue);
-    setMobileMenuOpen(false);
-  };
+  
 
   if (loading) {
     return (
@@ -689,12 +681,21 @@ const AdminDashboard = () => {
                   <span>Admin</span>
                 </Badge>
               </div>
-              <UserButton appearance={{ elements: { avatarBox: "w-8 h-8 sm:w-10 sm:h-10" } }} />
+              <UserButton 
+                appearance={{
+                  elements: {
+                    avatarBox: "w-8 h-8 sm:w-10 sm:h-10",
+                    userButtonPopoverCard: "shadow-xl border border-gray-200",
+                    userButtonPopoverActionButton: "hover:bg-gray-50"
+                  }
+                }}
+              />
               <div className="hidden md:block">
                 <p className="text-sm font-medium text-gray-900">
                   {userName}
                 </p>
               </div>
+              
             </div>
           </div>
 
