@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import VenueForm from '@/components/venues/VenueForm';
 import { 
   Calendar, 
   Bell, 
@@ -31,97 +32,423 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Loader2
 } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
+import { useAuth } from '@/context/AuthContext';
 
 const AdminDashboard = () => {
-  const { user } = useUser();
+  const { user: clerkUser } = useUser();
+  const { user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState('overview');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // State for real data
+  const [stats, setStats] = useState([]);
+  const [events, setEvents] = useState([]);
+  const [pendingRequests, setPendingRequests] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [venues, setVenues] = useState([]);
+  const [showVenueForm, setShowVenueForm] = useState(false);
+  const [selectedVenue, setSelectedVenue] = useState(null);
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [usersLoading, setUsersLoading] = useState(false);
+  
+  // Get the actual user data
+  const user = authUser || clerkUser;
+  const userName = user?.name || user?.firstName || user?.fullName || 'Admin';
 
-  // Mock data for demonstration
-  const stats = [
-    { title: 'Total Events', count: 156, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50' },
-    { title: 'Approved Events', count: 142, icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' },
-    { title: 'Pending Requests', count: 14, icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50' },
-    { title: 'Total Users', count: 2, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' }
-  ];
-
-  const events = [
-    {
-      id: 1,
-      name: 'Tech Innovation Summit 2024',
-      date: 'March 15, 2024',
-      organiser: 'Engineering Department',
-      status: 'Pending',
-      venue: 'Engineering Auditorium',
-      capacity: 200
-    },
-    {
-      id: 2,
-      name: 'Spring Concert Series',
-      date: 'April 18, 2024',
-      organiser: 'Music Club',
-      status: 'Approved',
-      venue: 'Campus Amphitheater',
-      capacity: 500
-    },
-    {
-      id: 3,
-      name: 'Science Exhibition',
-      date: 'May 10, 2024',
-      organiser: 'Science Society',
-      status: 'Rejected',
-      venue: 'Science Center',
-      capacity: 150
+  // Fetch user statistics
+  const fetchUserStats = async () => {
+    try {
+      console.log('Fetching user stats...');
+      const response = await fetch('http://localhost:5000/api/users/stats');
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('User stats response:', data);
+        
+        if (data.success && data.stats) {
+           // Update the Total Users count in stats
+           setStats(prevStats => 
+             prevStats.map(stat => 
+               stat.title === 'Total Users' 
+                 ? { ...stat, count: data.stats.totalUsers }
+                 : stat
+             )
+           );
+           console.log('Updated stats with user count:', data.stats.totalUsers);
+        } else {
+          console.error('Invalid stats response format:', data);
+        }
+      } else {
+        console.error('Failed to fetch user stats:', response.status);
+      }
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
     }
-  ];
+  };
 
-  const pendingRequests = [
-    {
-      id: 1,
-      eventName: 'Cultural Festival',
-      organiser: 'Cultural Club',
-      date: 'June 20, 2024',
-      venue: 'Main Hall',
-      capacity: 300
-    },
-    {
-      id: 2,
-      eventName: 'Career Fair',
-      organiser: 'Career Services',
-      date: 'July 5, 2024',
-      venue: 'Conference Center',
-      capacity: 400
+  // Fetch dashboard stats
+  const fetchDashboardStats = async () => {
+    try {
+      // For now, use mock data to avoid 403 errors
+      // TODO: Re-enable when admin authentication is working
+      const mockStats = [
+        { title: 'Total Events', count: events.length, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+        { title: 'Approved Events', count: events.filter(e => e.status === 'Approved').length, icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' },
+        { title: 'Pending Requests', count: events.filter(e => e.status === 'Pending').length, icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+        { title: 'Total Users', count: users.length, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' }
+      ];
+      setStats(mockStats);
+      
+      // TODO: Re-enable this when admin auth is working
+      /*
+      const response = await fetch('http://localhost:5000/api/admin/dashboard/stats', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        const statsData = [
+          { title: 'Total Events', count: data.stats.totalEvents, icon: Calendar, color: 'text-blue-600', bgColor: 'bg-blue-50' },
+          { title: 'Approved Events', count: data.stats.approvedEvents, icon: CheckCircle, color: 'text-green-600', bgColor: 'bg-green-50' },
+          { title: 'Pending Requests', count: data.stats.pendingEvents, icon: Clock, color: 'text-orange-600', bgColor: 'bg-orange-50' },
+          { title: 'Total Users', count: data.stats.totalUsers, icon: Users, color: 'text-purple-600', bgColor: 'bg-purple-50' }
+        ];
+        setStats(statsData);
+      }
+      */
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
     }
-  ];
+  };
 
-  const users = [
-    { id: 1, name: 'Alex Johnson', email: 'alex@university.edu', role: 'Student', events: 5 },
-    { id: 2, name: 'Sarah Wilson', email: 'sarah@university.edu', role: 'Organiser', events: 12 },
-    { id: 3, name: 'Mike Chen', email: 'mike@university.edu', role: 'Student', events: 3 }
-  ];
+  // Fetch events
+  const fetchEvents = async () => {
+    try {
+      const params = new URLSearchParams();
+      if (statusFilter !== 'all') params.append('status', statusFilter);
+      if (searchTerm) params.append('search', searchTerm);
+      
+      // Use the regular events endpoint like LandingPage
+      const response = await fetch(`http://localhost:5000/api/events?${params}`);
+      if (response.ok) {
+        const data = await response.json();
+        // Events are returned directly as an array
+        setEvents(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error fetching events:', error);
+    }
+  };
 
-  const venues = [
-    { id: 1, name: 'Engineering Auditorium', capacity: 200, status: 'Available', type: 'Auditorium' },
-    { id: 2, name: 'Campus Amphitheater', capacity: 500, status: 'Booked', type: 'Outdoor' },
-    { id: 3, name: 'Science Center', capacity: 150, status: 'Available', type: 'Lab' },
-    { id: 4, name: 'Main Hall', capacity: 300, status: 'Available', type: 'Hall' }
-  ];
+  // Fetch pending approvals
+  const fetchPendingApprovals = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/admin/events/pending-approvals', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPendingRequests(data.pendingEvents);
+      }
+    } catch (error) {
+      console.error('Error fetching pending approvals:', error);
+    }
+  };
 
-  const logs = [
-    { timestamp: '2024-02-20 10:30', actor: 'Sarah Wilson', action: 'Created Event', target: 'Tech Summit' },
-    { timestamp: '2024-02-20 09:15', actor: 'Admin', action: 'Approved Event', target: 'Spring Concert' },
-    { timestamp: '2024-02-19 16:45', actor: 'Mike Chen', action: 'Registered for Event', target: 'Career Fair' }
-  ];
+  // Fetch users
+  const fetchUsers = async () => {
+    try {
+      setUsersLoading(true);
+      console.log('Fetching users from /api/users...');
+      const response = await fetch('http://localhost:5000/api/users');
+      
+      if (response.ok) {
+        const data = await response.json();
+        console.log('Users API response:', data);
+        
+        if (data.success && data.users) {
+          setUsers(data.users);
+          console.log('Users fetched successfully:', data.users.length);
+        } else {
+          console.error('Invalid response format:', data);
+          setUsers([]);
+        }
+      } else {
+        console.error('Failed to fetch users:', response.status, response.statusText);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('Error details:', errorData);
+        setUsers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      setUsers([]);
+    } finally {
+      setUsersLoading(false);
+    }
+  };
+
+  // Fetch venues
+  const fetchVenues = async () => {
+    try {
+      const response = await fetch('http://localhost:5000/api/venues');
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setVenues(Object.values(data.venues).flat());
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching venues:', error);
+    }
+  };
+
+  // Handle venue form submission
+  const handleVenueSubmit = async (formData) => {
+    try {
+      const response = await fetch('http://localhost:5000/api/venues', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setShowVenueForm(false);
+          fetchVenues();
+        }
+      }
+    } catch (error) {
+      console.error('Error creating venue:', error);
+    }
+  };
+
+  // Handle venue edit
+  const handleEditVenue = (venue) => {
+    setSelectedVenue(venue);
+    setShowVenueForm(true);
+  };
+
+  // Handle venue deletion
+  const handleDeleteVenue = async (venueId) => {
+    if (window.confirm('Are you sure you want to delete this venue?')) {
+      try {
+        const response = await fetch(`http://localhost:5000/api/venues/${venueId}`, {
+          method: 'DELETE'
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            fetchVenues();
+          }
+        }
+      } catch (error) {
+        console.error('Error deleting venue:', error);
+      }
+    }
+  };
+
+  // Fetch recent activity
+  const fetchRecentActivity = async () => {
+    try {
+      // For now, use mock data to avoid 403 errors
+      // TODO: Re-enable when admin authentication is working
+      const mockLogs = [
+        {
+          user: { name: 'System' },
+          action: 'Dashboard loaded',
+          target: 'Admin Panel',
+          timestamp: new Date()
+        }
+      ];
+      setLogs(mockLogs);
+      
+      // TODO: Re-enable this when admin auth is working
+      /*
+      const response = await fetch('http://localhost:5000/api/admin/dashboard/recent-activity', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setLogs(data.recentActivity);
+      }
+      */
+    } catch (error) {
+      console.error('Error fetching recent activity:', error);
+    }
+  };
+
+  // Handle event approval/rejection
+  const handleEventStatusUpdate = async (eventId, status, rejectionReason = '') => {
+    try {
+      const response = await fetch(`http://localhost:5000/api/admin/events/${eventId}/status`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ status, rejectionReason })
+      });
+      
+      if (response.ok) {
+        // Refresh the data
+        fetchPendingApprovals();
+        fetchEvents();
+        fetchDashboardStats();
+        fetchRecentActivity();
+      }
+    } catch (error) {
+      console.error('Error updating event status:', error);
+    }
+  };
+
+
+
+  // Handle making user an organizer
+  const handleMakeOrganizer = async (userId, userName) => {
+    if (window.confirm(`Are you sure you want to make ${userName} an organizer?`)) {
+      try {
+        console.log('Updating user role to organizer:', userId);
+        const response = await fetch(`http://localhost:5000/api/users/${userId}/role`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ role: 'organizer' })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('Role update response:', data);
+          
+          if (data.success) {
+            // Update local state
+            setUsers(users.map(user => 
+              user._id === userId ? { ...user, role: 'organizer' } : user
+            ));
+            alert(`${userName} is now an organizer!`);
+            
+            // Refresh user stats
+            fetchUserStats();
+          } else {
+            alert(`Error: ${data.error}`);
+          }
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.error}`);
+        }
+      } catch (error) {
+        console.error('Error updating user role:', error);
+        alert('Failed to update user role');
+      }
+    }
+  };
+
+  // Handle removing user
+  const handleRemoveUser = async (userId, userName) => {
+    if (window.confirm(`Are you sure you want to remove ${userName}?`)) {
+      try {
+        console.log('Deactivating user:', userId);
+        const response = await fetch(`http://localhost:5000/api/users/${userId}`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('User deactivation response:', data);
+          
+          if (data.success) {
+            // Remove from local state
+            setUsers(users.filter(user => user._id !== userId));
+            alert('User removed successfully!');
+            
+            // Refresh user stats
+            fetchUserStats();
+          } else {
+            alert(`Error: ${data.error}`);
+          }
+        } else {
+          const errorData = await response.json();
+          alert(`Error: ${errorData.error}`);
+        }
+      } catch (error) {
+        console.error('Error removing user:', error);
+        alert('Failed to remove user');
+      }
+    }
+  };
+
+  // Load data when component mounts or tab changes
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([
+        fetchDashboardStats(),
+        fetchRecentActivity(),
+        fetchUserStats(),
+        fetchUsers()
+      ]);
+      setLoading(false);
+    };
+    loadData();
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 'events') {
+      fetchEvents();
+    } else if (activeTab === 'approvals') {
+      fetchPendingApprovals();
+    } else if (activeTab === 'users') {
+      console.log('Fetching users...');
+      fetchUsers();
+    } else if (activeTab === 'venues') {
+      fetchVenues();
+    } else if (activeTab === 'logs') {
+      fetchRecentActivity();
+    }
+  }, [activeTab, searchTerm, statusFilter]);
+
+  // Update stats when events change
+  useEffect(() => {
+    if (events.length > 0) {
+      fetchDashboardStats();
+    }
+  }, [events]);
+
+  // Update stats when users change
+  useEffect(() => {
+    console.log('Users changed:', users.length, users);
+    if (users.length > 0) {
+      fetchDashboardStats();
+    }
+  }, [users]);
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'Approved': return 'bg-green-100 text-green-700';
       case 'Pending': return 'bg-orange-100 text-orange-700';
       case 'Rejected': return 'bg-red-100 text-red-700';
+      case 'Completed': return 'bg-blue-100 text-blue-700';
+      case 'Cancelled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -129,6 +456,26 @@ const AdminDashboard = () => {
   const getVenueStatusColor = (status) => {
     return status === 'Available' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700';
   };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+          <p className="text-gray-600">Loading admin dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col lg:flex-row">
@@ -224,7 +571,7 @@ const AdminDashboard = () => {
               />
               <div className="hidden md:block">
                 <p className="text-sm font-medium text-gray-900">
-                  {user?.firstName || user?.fullName || 'Admin'}
+                  {userName}
                 </p>
               </div>
             </div>
@@ -301,11 +648,15 @@ const AdminDashboard = () => {
                         <div className="flex items-center space-x-3">
                           <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
                           <div>
-                            <p className="font-medium text-gray-900 text-sm sm:text-base">{log.actor} {log.action}</p>
+                            <p className="font-medium text-gray-900 text-sm sm:text-base">
+                              {log.user?.name || 'System'} {log.action}
+                            </p>
                             <p className="text-xs sm:text-sm text-gray-600">{log.target}</p>
                           </div>
                         </div>
-                        <span className="text-xs sm:text-sm text-gray-500">{log.timestamp}</span>
+                        <span className="text-xs sm:text-sm text-gray-500">
+                          {formatDate(log.timestamp)}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -320,11 +671,24 @@ const AdminDashboard = () => {
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                     <CardTitle className="text-lg sm:text-xl">Events Management</CardTitle>
                     <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                      <Input placeholder="Search events..." className="w-full sm:w-64 text-sm" />
-                      <Button variant="outline" size="sm">
-                        <Filter className="w-4 h-4 mr-2" />
-                        Filter
-                      </Button>
+                      <Input 
+                        placeholder="Search events..." 
+                        className="w-full sm:w-64 text-sm"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <select 
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="all">All Status</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                      </select>
                     </div>
                   </div>
                 </CardHeader>
@@ -343,16 +707,22 @@ const AdminDashboard = () => {
                       </thead>
                       <tbody>
                         {events.map((event) => (
-                          <tr key={event.id} className="border-b border-gray-100">
-                            <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{event.name}</td>
-                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{event.date}</td>
-                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{event.organiser}</td>
+                          <tr key={event._id} className="border-b border-gray-100">
+                            <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{event.title}</td>
+                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                              {formatDate(event.startTime)}
+                            </td>
+                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                              {event.organizer?.name || 'N/A'}
+                            </td>
                             <td className="py-3 px-2 sm:px-4">
                               <Badge className={`${getStatusColor(event.status)} text-xs`}>
                                 {event.status}
                               </Badge>
                             </td>
-                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{event.venue}</td>
+                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                              {event.venue?.name || event.location || 'N/A'}
+                            </td>
                             <td className="py-3 px-2 sm:px-4">
                               <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
                                 <Button size="sm" variant="outline" className="text-xs">
@@ -360,10 +730,18 @@ const AdminDashboard = () => {
                                 </Button>
                                 {event.status === 'Pending' && (
                                   <>
-                                    <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs">
+                                    <Button 
+                                      size="sm" 
+                                      className="bg-green-600 hover:bg-green-700 text-xs"
+                                      onClick={() => handleEventStatusUpdate(event._id, 'Approved')}
+                                    >
                                       <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </Button>
-                                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-xs">
+                                    <Button 
+                                      size="sm" 
+                                      className="bg-red-600 hover:bg-red-700 text-xs"
+                                      onClick={() => handleEventStatusUpdate(event._id, 'Rejected')}
+                                    >
                                       <XCircle className="w-3 h-3 sm:w-4 sm:h-4" />
                                     </Button>
                                   </>
@@ -387,28 +765,46 @@ const AdminDashboard = () => {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 sm:space-y-4">
-                    {pendingRequests.map((request) => (
-                      <div key={request.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
-                        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 space-y-3 sm:space-y-0">
-                          <div className="space-y-1 sm:space-y-2">
-                            <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{request.eventName}</h4>
-                            <p className="text-xs sm:text-sm text-gray-600">Organiser: {request.organiser}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">Date: {request.date}</p>
-                            <p className="text-xs sm:text-sm text-gray-600">Venue: {request.venue} (Capacity: {request.capacity})</p>
-                          </div>
-                          <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-                            <Button className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm">
-                              <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                              Approve
-                            </Button>
-                            <Button variant="outline" className="border-red-200 text-red-700 hover:bg-red-50 text-xs sm:text-sm">
-                              <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                              Reject
-                            </Button>
+                    {pendingRequests.length === 0 ? (
+                      <p className="text-gray-500 text-center py-8">No pending approvals</p>
+                    ) : (
+                      pendingRequests.map((request) => (
+                        <div key={request._id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 sm:mb-4 space-y-3 sm:space-y-0">
+                            <div className="space-y-1 sm:space-y-2">
+                              <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{request.title}</h4>
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                Organiser: {request.organizer?.name || 'N/A'}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                Date: {formatDate(request.startTime)}
+                              </p>
+                              <p className="text-xs sm:text-sm text-gray-600">
+                                Venue: {request.venue?.name || request.location || 'N/A'} 
+                                {request.maxAttendees && ` (Capacity: ${request.maxAttendees})`}
+                              </p>
+                            </div>
+                            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
+                              <Button 
+                                className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm"
+                                onClick={() => handleEventStatusUpdate(request._id, 'Approved')}
+                              >
+                                <CheckCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                Approve
+                              </Button>
+                              <Button 
+                                variant="outline" 
+                                className="border-red-200 text-red-700 hover:bg-red-50 text-xs sm:text-sm"
+                                onClick={() => handleEventStatusUpdate(request._id, 'Rejected')}
+                              >
+                                <XCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                Reject
+                              </Button>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -420,9 +816,19 @@ const AdminDashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                     <CardTitle className="text-lg sm:text-xl">Users & Organisers</CardTitle>
-                    <Button size="sm" className="text-xs sm:text-sm">
-                      <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                      Add Organiser
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={fetchUsers}
+                      disabled={usersLoading}
+                      className="text-xs sm:text-sm"
+                    >
+                      {usersLoading ? (
+                        <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 animate-spin" />
+                      ) : (
+                        <Users className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                      )}
+                      Refresh Users
                     </Button>
                   </div>
                 </CardHeader>
@@ -434,37 +840,71 @@ const AdminDashboard = () => {
                     </TabsList>
                     
                     <TabsContent value="users" className="space-y-3 sm:space-y-4">
-                      <div className="overflow-x-auto">
-                        <table className="w-full">
-                          <thead>
-                            <tr className="border-b border-gray-200">
-                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Name</th>
-                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Email</th>
-                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Role</th>
-                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Events</th>
-                              <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Actions</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {users.map((user) => (
-                              <tr key={user.id} className="border-b border-gray-100">
-                                <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{user.name}</td>
-                                <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{user.email}</td>
-                                <td className="py-3 px-2 sm:px-4">
-                                  <Badge className="bg-blue-100 text-blue-700 text-xs">{user.role}</Badge>
-                                </td>
-                                <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{user.events}</td>
-                                <td className="py-3 px-2 sm:px-4">
-                                  <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs">
-                                    <UserMinus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                                    Remove
-                                  </Button>
-                                </td>
+                      {usersLoading ? (
+                        <div className="text-center py-8">
+                          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-blue-600" />
+                          <p className="text-gray-600">Loading users...</p>
+                        </div>
+                      ) : users.length === 0 ? (
+                        <div className="text-center py-8">
+                          <p className="text-gray-500">No users found</p>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            onClick={fetchUsers}
+                            className="mt-2"
+                          >
+                            Retry
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead>
+                              <tr className="border-b border-gray-200">
+                                <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Name</th>
+                                <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Email</th>
+                                <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Role</th>
+                                <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Joined</th>
+                                <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Actions</th>
                               </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
+                            </thead>
+                            <tbody>
+                              {users.map((user) => (
+                                <tr key={user._id} className="border-b border-gray-100">
+                                  <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{user.name}</td>
+                                  <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{user.email}</td>
+                                  <td className="py-3 px-2 sm:px-4">
+                                    <Badge className="bg-blue-100 text-blue-700 text-xs capitalize">{user.role}</Badge>
+                                  </td>
+                                  <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                                    {formatDate(user.createdAt)}
+                                  </td>
+                                  <td className="py-3 px-2 sm:px-4">
+                                    <div className="flex flex-col sm:flex-row space-y-1 sm:space-y-0 sm:space-x-2">
+                                      {user.role !== 'organizer' && (
+                                        <Button 
+                                          size="sm" 
+                                          variant="outline" 
+                                          className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs"
+                                          onClick={() => handleMakeOrganizer(user._id, user.name)}
+                                        >
+                                          <UserPlus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                          Make Organiser
+                                        </Button>
+                                      )}
+                                      <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs" onClick={() => handleRemoveUser(user._id, user.name)}>
+                                        <UserMinus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
+                                        Remove
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
                     </TabsContent>
 
                     <TabsContent value="organisers" className="space-y-3 sm:space-y-4">
@@ -479,13 +919,16 @@ const AdminDashboard = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {users.filter(u => u.role === 'Organiser').map((user) => (
-                              <tr key={user.id} className="border-b border-gray-100">
+                            {users.filter(u => u.role === 'organizer').map((user) => (
+                              <tr key={user._id} className="border-b border-gray-100">
                                 <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{user.name}</td>
                                 <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{user.email}</td>
-                                <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{user.events}</td>
+                                <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                                  {/* This would need a separate API call to count user's events */}
+                                  N/A
+                                </td>
                                 <td className="py-3 px-2 sm:px-4">
-                                  <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs">
+                                  <Button size="sm" variant="outline" className="text-red-600 border-red-200 hover:bg-red-50 text-xs" onClick={() => handleRemoveUser(user._id, user.name)}>
                                     <UserMinus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                                     Remove
                                   </Button>
@@ -503,11 +946,30 @@ const AdminDashboard = () => {
 
             {/* Venues */}
             <TabsContent value="venues" className="space-y-4 sm:space-y-6">
+              {showVenueForm && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                  <VenueForm
+                    onSubmit={handleVenueSubmit}
+                    onCancel={() => {
+                      setShowVenueForm(false);
+                      setSelectedVenue(null);
+                    }}
+                    initialData={selectedVenue}
+                  />
+                </div>
+              )}
               <Card>
                 <CardHeader className="pb-3">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center space-y-3 sm:space-y-0">
                     <CardTitle className="text-lg sm:text-xl">Venue Management</CardTitle>
-                    <Button size="sm" className="text-xs sm:text-sm">
+                    <Button 
+                      size="sm" 
+                      className="text-xs sm:text-sm"
+                      onClick={() => {
+                        setSelectedVenue(null);
+                        setShowVenueForm(true);
+                      }}
+                    >
                       <Plus className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Add Venue
                     </Button>
@@ -522,12 +984,13 @@ const AdminDashboard = () => {
                           <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Type</th>
                           <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Capacity</th>
                           <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Status</th>
+                          <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Current Booking</th>
                           <th className="text-left py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         {venues.map((venue) => (
-                          <tr key={venue.id} className="border-b border-gray-100">
+                          <tr key={venue._id} className="border-b border-gray-100">
                             <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{venue.name}</td>
                             <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{venue.type}</td>
                             <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{venue.capacity}</td>
@@ -536,10 +999,37 @@ const AdminDashboard = () => {
                                 {venue.status}
                               </Badge>
                             </td>
+                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                              {venue.currentBooking?.eventId ? (
+                                <div>
+                                  <div className="font-medium">{venue.currentBooking.eventId.title}</div>
+                                  <div className="text-xs text-gray-500">
+                                    {formatDate(venue.currentBooking.startTime)} - {formatDate(venue.currentBooking.endTime)}
+                                  </div>
+                                </div>
+                              ) : (
+                                'Available'
+                              )}
+                            </td>
                             <td className="py-3 px-2 sm:px-4">
-                              <Button size="sm" variant="outline" className="text-xs">
-                                Allot Venue
-                              </Button>
+                              <div className="flex space-x-2">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-xs"
+                                  onClick={() => handleEditVenue(venue)}
+                                >
+                                  Edit
+                                </Button>
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="text-red-600 border-red-200 hover:bg-red-50 text-xs"
+                                  onClick={() => handleDeleteVenue(venue._id)}
+                                >
+                                  Delete
+                                </Button>
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -570,8 +1060,12 @@ const AdminDashboard = () => {
                       <tbody>
                         {logs.map((log, index) => (
                           <tr key={index} className="border-b border-gray-100">
-                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{log.timestamp}</td>
-                            <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">{log.actor}</td>
+                            <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">
+                              {formatDate(log.timestamp)}
+                            </td>
+                            <td className="py-3 px-2 sm:px-4 font-medium text-gray-900 text-xs sm:text-sm">
+                              {log.user?.name || 'System'}
+                            </td>
                             <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{log.action}</td>
                             <td className="py-3 px-2 sm:px-4 text-gray-600 text-xs sm:text-sm">{log.target}</td>
                           </tr>

@@ -8,5 +8,12 @@ const auditSchema = new mongoose.Schema({
     ipAddress: String,
     userAgent: String
 });
-  
-module.exports = mongoose.model("Audit", auditSchema);
+
+// Indexes for efficient querying
+auditSchema.index({ timestamp: -1 });
+auditSchema.index({ user: 1 });
+auditSchema.index({ action: 1 });
+
+const Audit = mongoose.model("Audit", auditSchema);
+
+export default Audit;
