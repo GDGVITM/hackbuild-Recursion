@@ -14,6 +14,10 @@ import Privacy from '../pages/common/Privacy';
 import Payment from '../pages/common/Payment';
 import PaymentSuccess from '../pages/common/PaymentSuccess';
 
+import EventDetails from '../pages/common/EventDetails';
+import EventsList from '../pages/common/EventsList';
+
+
 // Protected Route Component
 const ProtectedRoute = ({ children }) => {
   return (
@@ -147,6 +151,16 @@ const AppRouter = () => {
             } 
           />
 
+          {/* Event Details Page - Protected */}
+  <Route
+    path="/events/:id"
+    element={
+      <ProtectedRoute>
+        <EventDetails />
+      </ProtectedRoute>
+    }
+  />
+
           {/* User Profile - Protected Route */}
           <Route 
             path="/user/profile" 
@@ -165,13 +179,20 @@ const AppRouter = () => {
             path="/events" 
             element={
               <ProtectedRoute>
-                <div className="text-center">
-                  <h1 className="text-2xl font-bold text-gray-900 mb-4">Events</h1>
-                  <p className="text-gray-600">Events page coming soon...</p>
-                </div>
+                <EventsList />
               </ProtectedRoute>
             } 
           />
+
+          <Route
+  path="/events/:id"
+  element={
+    <ProtectedRoute>
+      <EventDetails />
+    </ProtectedRoute>
+  }
+/>
+
 
           {/* Stats Page - Protected Route */}
           <Route 

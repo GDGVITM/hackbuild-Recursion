@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,7 +9,6 @@ import {
   QrCode, 
   BookOpen, 
   GraduationCap, 
-  ChevronDown, 
   MapPin, 
   Clock,
   TrendingUp,
@@ -19,108 +18,49 @@ import {
 } from 'lucide-react';
 import { UserButton, useUser } from '@clerk/clerk-react';
 import { useAuth } from '@/context/AuthContext';
+import { Link } from 'react-router-dom';
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user: authUser } = useAuth();
   const { user: clerkUser } = useUser();
-
-  // Get the actual user data (from auth context or clerk)
   const user = authUser || clerkUser;
   const userName = user?.name || user?.firstName || user?.fullName || 'User';
   const userRole = user?.role || 'Student';
 
-  // Real user data - you can replace these with actual API calls
   const upcomingEvents = [
-    {
-      id: 1,
-      title: 'Tech Innovation Summit 2024',
-      date: 'March 15, 2024',
-      time: '9:00 AM',
-      location: 'Engineering Auditorium',
-      status: 'Registered'
-    },
-    {
-      id: 2,
-      title: 'Spring Concert Series',
-      date: 'April 18, 2024',
-      time: '7:00 PM',
-      location: 'Campus Amphitheater',
-      status: 'Registered'
-    }
+    { id: 1, title: 'Tech Innovation Summit 2024', date: 'March 15, 2024', time: '9:00 AM', location: 'Engineering Auditorium', status: 'Registered' },
+    { id: 2, title: 'Spring Concert Series', date: 'April 18, 2024', time: '7:00 PM', location: 'Campus Amphitheater', status: 'Registered' }
   ];
 
   const recentActivity = [
-    {
-      id: 1,
-      event: 'Tech Innovation Summit 2024',
-      action: 'Registered on Feb 20, 2024',
-      status: 'upcoming'
-    },
-    {
-      id: 2,
-      event: 'Annual Cultural Fest',
-      action: 'Registered on Feb 18, 2024',
-      status: 'upcoming'
-    },
-    {
-      id: 3,
-      event: 'Science Exhibition',
-      action: 'Registered on March 1, 2024',
-      status: 'upcoming'
-    }
+    { id: 1, event: 'Tech Innovation Summit 2024', action: 'Registered on Feb 20, 2024', status: 'upcoming' },
+    { id: 2, event: 'Annual Cultural Fest', action: 'Registered on Feb 18, 2024', status: 'upcoming' },
+    { id: 3, event: 'Science Exhibition', action: 'Registered on March 1, 2024', status: 'upcoming' }
   ];
 
   const quickAccessCards = [
-    {
-      icon: Calendar,
-      title: 'Browse Events',
-      description: 'Find new events',
-      color: 'text-blue-600'
-    },
-    {
-      icon: QrCode,
-      title: 'My Tickets',
-      description: 'QR codes & passes',
-      color: 'text-orange-500'
-    },
-    {
-      icon: Bell,
-      title: 'Notifications',
-      description: '3 new',
-      color: 'text-purple-600'
-    },
-    {
-      icon: BookOpen,
-      title: 'My Calendar',
-      description: 'View schedule',
-      color: 'text-green-600'
-    }
+    { icon: Calendar, title: 'Browse Events', description: 'Find new events', color: 'text-blue-600', link: '/events' },
+    { icon: QrCode, title: 'My Tickets', description: 'QR codes & passes', color: 'text-orange-500', link: '/user/my-tickets' },
+    { icon: Bell, title: 'Notifications', description: '3 new', color: 'text-purple-600', link: '#' },
+    { icon: BookOpen, title: 'My Calendar', description: 'View schedule', color: 'text-green-600', link: '#' }
   ];
 
-  // Get user stats
   const userStats = {
     totalEvents: upcomingEvents.length + recentActivity.length,
     upcomingEvents: upcomingEvents.length,
     notifications: 3
   };
 
-  // Get role badge color
   const getRoleBadgeColor = () => {
     switch (userRole.toLowerCase()) {
-      case 'admin':
-        return 'bg-purple-100 text-purple-700';
-      case 'organizer':
-        return 'bg-orange-100 text-orange-700';
-      case 'volunteer':
-        return 'bg-green-100 text-green-700';
-      default:
-        return 'bg-blue-100 text-blue-700';
+      case 'admin': return 'bg-purple-100 text-purple-700';
+      case 'organizer': return 'bg-orange-100 text-orange-700';
+      case 'volunteer': return 'bg-green-100 text-green-700';
+      default: return 'bg-blue-100 text-blue-700';
     }
   };
-
-  
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -128,55 +68,44 @@ const Dashboard = () => {
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex justify-between items-center">
-            {/* Left Side - Logo and Navigation */}
+            {/* Logo and Desktop Nav */}
             <div className="flex items-center space-x-4 sm:space-x-8">
-              {/* Logo */}
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600 rounded-lg flex items-center justify-center">
                   <Calendar className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
                 </div>
-                <div>
-                  <h1 className="text-lg sm:text-2xl font-bold text-gray-900">EventHub</h1>
-                  
-                </div>
+                <h1 className="text-lg sm:text-2xl font-bold text-gray-900">EventHub</h1>
               </div>
 
               {/* Desktop Navigation Links */}
               <nav className="hidden lg:flex space-x-6 items-center justify-center">
-                <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
+                <Link to="/events" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
                   <Calendar className="w-4 h-4" />
                   <span>Browse Events</span>
-                </a>
-                <a href="#" className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2">
+                </Link>
+                <Link to="/user/my-events" className="bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2">
                   <Calendar className="w-4 h-4" />
                   <span>My Events</span>
-                </a>
-                <a href="#" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
+                </Link>
+                <Link to="/user/my-tickets" className="text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2">
                   <QrCode className="w-4 h-4" />
                   <span>My Tickets</span>
-                </a>
+                </Link>
               </nav>
             </div>
 
-            {/* Right Side - Notifications, User Info, Profile */}
+            {/* Right Side - Notifications & Profile */}
             <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Notifications */}
               <div className="relative">
                 <Button variant="ghost" size="icon" className="relative">
                   <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-gray-600" />
-                  <Badge className="absolute -top-2 -right-2 w-4 h-4 sm:w-5 sm:h-5 bg-blue-600 text-white text-xs rounded-full">
-                    3
-                  </Badge>
+                  <Badge className="absolute -top-2 -right-2 w-4 h-4 sm:w-5 sm:h-5 bg-blue-600 text-white text-xs rounded-full">3</Badge>
                 </Button>
               </div>
 
-              
-
-              {/* User Profile */}
               <div className="flex items-center space-x-2">
-              <div className="hidden md:block">
+                <div className="hidden md:block">
                   <p className="text-sm font-medium text-gray-900">{userName}</p>
-                  
                 </div>
                 <UserButton 
                   appearance={{
@@ -190,12 +119,7 @@ const Dashboard = () => {
               </div>
 
               {/* Mobile Menu Button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden"
-              >
+              <Button variant="ghost" size="icon" onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden">
                 {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
               </Button>
             </div>
@@ -204,18 +128,18 @@ const Dashboard = () => {
           {/* Mobile Navigation Menu */}
           {mobileMenuOpen && (
             <nav className="lg:hidden mt-4 pt-4 border-t border-gray-200 space-y-3">
-              <a href="#" className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2">
+              <Link to="/events" className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2">
                 <Calendar className="w-4 h-4" />
                 <span>Browse Events</span>
-              </a>
-              <a href="#" className="block bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2">
+              </Link>
+              <Link to="/user/my-events" className="block bg-blue-100 text-blue-700 px-4 py-2 rounded-lg flex items-center space-x-2">
                 <Calendar className="w-4 h-4" />
                 <span>My Events</span>
-              </a>
-              <a href="#" className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2">
+              </Link>
+              <Link to="/user/my-tickets" className="block text-gray-700 hover:text-gray-900 transition-colors flex items-center space-x-2 py-2">
                 <QrCode className="w-4 h-4" />
                 <span>My Tickets</span>
-              </a>
+              </Link>
               <div className="pt-2 border-t border-gray-200">
                 <span className="text-sm text-gray-600">Logged in as:</span>
                 <Badge className={`${getRoleBadgeColor()} px-3 py-1 rounded-full flex items-center space-x-1 mt-1`}>
@@ -258,31 +182,25 @@ const Dashboard = () => {
         {/* Quick Access Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
           {quickAccessCards.map((card, index) => (
-            <Card key={index} className="hover:shadow-md transition-shadow cursor-pointer">
-              <CardContent className="p-4 sm:p-6 text-center">
-                <card.icon className={`w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 ${card.color}`} />
-                <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1">{card.title}</h3>
-                <p className="text-xs sm:text-sm text-gray-600">{card.description}</p>
-              </CardContent>
-            </Card>
+            <Link to={card.link || '#'} key={index}>
+              <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                <CardContent className="p-4 sm:p-6 text-center">
+                  <card.icon className={`w-8 h-8 sm:w-12 sm:h-12 mx-auto mb-2 sm:mb-3 ${card.color}`} />
+                  <h3 className="font-semibold text-gray-900 text-sm sm:text-base mb-1">{card.title}</h3>
+                  <p className="text-xs sm:text-sm text-gray-600">{card.description}</p>
+                </CardContent>
+              </Card>
+            </Link>
           ))}
         </div>
 
-        {/* Main Content Tabs */}
+        {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4 sm:space-y-6">
           <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4">
-            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="tickets" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">
-              My Tickets
-            </TabsTrigger>
-            <TabsTrigger value="history" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">
-              History
-            </TabsTrigger>
-            <TabsTrigger value="notifications" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">
-              Notifications
-            </TabsTrigger>
+            <TabsTrigger value="overview" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="tickets" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">My Tickets</TabsTrigger>
+            <TabsTrigger value="history" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">History</TabsTrigger>
+            <TabsTrigger value="notifications" className="data-[state=active]:bg-blue-100 data-[state=active]:text-blue-700 text-xs sm:text-sm">Notifications</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-4 sm:space-y-6">
@@ -294,7 +212,7 @@ const Dashboard = () => {
                   <CardTitle className="text-lg sm:text-xl">Upcoming Events</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
-                  {upcomingEvents.map((event) => (
+                  {upcomingEvents.map(event => (
                     <div key={event.id} className="border border-gray-200 rounded-lg p-3 sm:p-4">
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-3 space-y-2 sm:space-y-0">
                         <h4 className="font-semibold text-gray-900 text-sm sm:text-base">{event.title}</h4>
@@ -333,7 +251,7 @@ const Dashboard = () => {
                   <CardTitle className="text-lg sm:text-xl">Recent Activity</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
-                  {recentActivity.map((activity) => (
+                  {recentActivity.map(activity => (
                     <div key={activity.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border border-gray-200 rounded-lg space-y-2 sm:space-y-0">
                       <div className="flex items-center space-x-3">
                         <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
@@ -379,10 +297,7 @@ const Dashboard = () => {
 
       {/* Help Button */}
       <div className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-40">
-        <Button
-          size="icon"
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-800 hover:bg-gray-900 shadow-lg"
-        >
+        <Button size="icon" className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gray-800 hover:bg-gray-900 shadow-lg">
           <HelpCircle className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
         </Button>
       </div>
