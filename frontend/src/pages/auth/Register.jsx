@@ -108,7 +108,7 @@ const Register = () => {
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         // Redirect based on role
         const redirectUrl = getRedirectUrl(data.user.role);
         navigate(redirectUrl);
@@ -147,7 +147,7 @@ const Register = () => {
         // Store token and user data
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
-        
+
         // Redirect based on role
         const redirectUrl = getRedirectUrl(data.user.role);
         navigate(redirectUrl);
@@ -243,12 +243,21 @@ const Register = () => {
                 />
               </div>
 
+              // Corrected JSX structure
               <div>
                 <Label htmlFor="role">Role</Label>
-                <Select value={formData.role} onChange={handleSelectChange}>
-                  <SelectItem value="student">Student</SelectItem>
-                  <SelectItem value="volunteer">Volunteer</SelectItem>
-                  <SelectItem value="organizer">Organizer</SelectItem>
+                <Select
+                  value={formData.role}
+                  onValueChange={handleSelectChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="volunteer">Volunteer</SelectItem>
+                    <SelectItem value="organizer">Organizer</SelectItem>
+                  </SelectContent>
                 </Select>
               </div>
 
